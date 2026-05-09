@@ -1,13 +1,13 @@
 package geeks.dongnea.domain.user.controller;
 
 import geeks.dongnea.domain.user.dto.UserResponse;
+import geeks.dongnea.domain.user.entity.User;
 import geeks.dongnea.domain.user.service.UserService;
+import geeks.dongnea.global.security.service.CurrentUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,22 +17,13 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final CurrentUserService currentUserService;
 
     @GetMapping("/me")
-    @Operation(summary = "현재 로그인한 내 정보 조회", description = "JWT 토큰을 통해 인증된 유저 정보를 반환합니다.")
-    public ResponseEntity<UserResponse> getMyInfo(Authentication authentication) {
-        String email = extractEmail(authentication);
-        UserResponse response = userService.getUserInfo(email);
+    @Operation(summary = "현재 로그인한 내 정보 조회", description = "JWT 토큰을 통해 인증된 유저의 id, email, name을 반환합니다.")
+    public ResponseEntity<UserResponse> getMyInfo() {
+        User currentUser = currentUserService.getCurrentUser();
+        UserResponse response = userService.toResponse(currentUser);
         return ResponseEntity.ok(response);
-    }
-
-    private String extractEmail(Authentication authentication) {
-        Object principal = authentication.getPrincipal();
-
-        if (principal instanceof OAuth2User oAuth2User) {
-            return oAuth2User.getAttribute("email");
-        }
-
-        return principal.toString();
     }
 }

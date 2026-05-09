@@ -40,6 +40,10 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
         // 찾아온 엔티티를 응답용 DTO로 변환해서 반환합니다.
+        return toResponse(user);
+    }
+
+    public UserResponse toResponse(User user) {
         return new UserResponse(user.getId(), user.getEmail(), user.getName());
     }
 }
