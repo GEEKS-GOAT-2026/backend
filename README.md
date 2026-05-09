@@ -1,96 +1,344 @@
-# 📱 인하대학교 동아리 통합 플랫폼: 동네 (Dongne) - Backend API Server
+# Dongne Backend
 
-> **"우리 학교 동아리 네트워크, 동네에서 한눈에"**
-> 본 저장소는 인하대학교 학생들과 동아리 회장들을 연결하는 통합 서비스 '동네'의 **백엔드(Backend) API 서버** 소스 코드를 관리합니다.
+인하대학교 동아리 통합 플랫폼 **동네(Dongne)** 백엔드 API 서버입니다.
 
----
-
-## 🚀 프로젝트 개요 (v1.0 MVP)
-
-현재 인하대학교 내 여러 커뮤니티에 흩어져 있는 동아리 홍보 게시글과 지원서 양식을 하나로 통합하여, 학생들에게는 편리한 지원 경험을, 동아리 회장들에게는 효율적인 모집 관리 도구를 제공합니다.
-
-- **파일럿 타겟**: GDG on Campus (GDGoC) Inha 데이터를 기반으로 기능 시연 및 검증 진행
-- **배포 전략**: 모바일 환경에 최적화된 **웹앱(Web App)** 형태로 배포하여, 앱스토어 심사 대기 없이 앱과 유사한 사용자 경험(UX)을 제공합니다.
-- **저장소 분리**: 프론트엔드(Next.js) 코드와 완전히 분리된 백엔드 전용 레포지토리입니다.
-
----
-
-## 🛠 Tech Stack (Backend)
-
-생산성과 확장성을 고려하여 최신 백엔드 기술 스택을 채택하였습니다.
-
-- **Language**: Java 17
-- **Framework**: Spring Boot 3.2.x
-- **Build Tool**: Gradle (Groovy)
-- **Database**: PostgreSQL (Managed by Supabase)
-- **ORM**: Spring Data JPA
-- **Authentication**: Google OAuth2 (@inha.ac.kr 도메인 제한)
-- **Validation**: Spring Boot Starter Validation
-- **Utilities**: Lombok
-
----
-
-## 🏗 Key Decisions & Strategy
-
-백엔드 개발 및 시스템 설계 시 합의된 핵심 원칙입니다.
-
-1. **사용자 인증 (Auth)**: 번거로운 메일 인증 대신 **구글 OAuth(도메인 제한)**를 사용하여 사용자 이탈률을 최소화합니다.
-2. **유연한 지원서 (JSONB)**: 동아리마다 다른 질문 문항을 수용하기 위해 지원서 데이터를 **JSONB** 형식으로 저장하여 유연성을 확보합니다.
-3. **효율적 개발 범위**: 관리자(Admin) UI를 별도로 제작하지 않고 개발팀이 **DB 직접 관리**를 수행하여, 사용자 기능 고도화에 리소스를 집중합니다.
-4. **안정성 우선**: '선착순 마감' 기능을 제외하여 트래픽 집중 시 발생할 수 있는 DB 락(Lock) 및 서버 부하를 방지합니다.
-5. **API 통신 규격**: 프론트엔드와의 원활한 협업을 위해 모든 API 응답은 일관된 JSON 포맷(`{status, message, data}`)을 준수합니다.
-
----
-
-## 📂 Project Structure
+현재 MVP 우선순위는 다음 사용자 흐름입니다.
 
 ```text
-src/main/java/com/inha/dongne
-├── global          # 공통 설정 (Security, Exception, Response DTO 등)
-├── domain
-│   ├── user        # 사용자 관리 및 인증
-│   ├── club        # 동아리 홍보 및 정보 관리
-│   ├── application # 지원서 양식 및 제출 관리
-│   └── notice      # 공지사항
-└── infra           # 외부 서비스 연동 (S3, OAuth 등)
+Google 로그인 -> 인하대 계정 검증 -> users 저장/조회 -> 동아리 목록 무한 스크롤 -> 동아리 상세 확인
 ```
 
----
+## 현재 구현 상태
 
-## ⚙️ 시작하기 (Getting Started)
+### 완료
 
-### 1. 환경 변수 설정
+- Google OAuth2 로그인
+- `@inha.edu`, `@inha.ac.kr` 학교 계정 검증
+- 로그인 성공 시 `users` 테이블에 유저 저장 또는 업데이트
+- 백엔드 JWT 발급
+- `Authorization: Bearer <token>` 기반 인증 필터
+- `GET /api/users/me` 내 정보 조회
+- `GET /api/clubs?page=0&size=20` 동아리 목록 페이지네이션
+- `GET /api/clubs/{clubId}` 동아리 상세 조회
+- 로컬 테스트용 동아리 더미데이터 30개
+- OAuth + 동아리 목록 테스트용 단일 Node 페이지
 
-프로젝트 실행을 위해 `src/main/resources` 경로에 `application-secret.yml` 파일을 생성하고 아래 정보를 설정해야 합니다. (해당 파일은 보안을 위해 `.gitignore`에 등록되어 있으며, 절대 커밋하지 마세요.)
+### 아직 실험/초안 상태
+
+- 모집 공고 생성 API
+- 지원서 제출 API
+- 동아리 관리자 권한 검증
+- refresh token / logout
+- 운영 배포 설정
+
+## Tech Stack
+
+- Java 21
+- Spring Boot 3.5.14
+- Spring Security
+- Spring OAuth2 Client
+- JWT: `jjwt 0.12.5`
+- Spring Data JPA
+- PostgreSQL
+- Docker Compose
+- Swagger / Springdoc OpenAPI
+
+## 프로젝트 구조
+
+```text
+dongnea
+├── build.gradle
+├── docker-compose.yml
+├── oauth-club-test.mjs
+└── src/main
+    ├── java/geeks/dongnea
+    │   ├── domain
+    │   │   ├── user
+    │   │   ├── club
+    │   │   └── application
+    │   └── global
+    │       ├── config
+    │       └── security
+    └── resources
+        ├── application.yml
+        └── application-secret.yml
+```
+
+## 로컬 실행 가이드
+
+아래 명령은 `backend_repo/dongnea` 디렉터리에서 실행합니다.
+
+```bash
+cd dongnea
+```
+
+### 1. PostgreSQL 실행
+
+```bash
+docker-compose up -d
+```
+
+현재 로컬 DB 기본값:
+
+```text
+host: localhost
+port: 5432
+database: dongnea_db
+username: admin
+password: 1234
+```
+
+### 2. Secret 설정
+
+`src/main/resources/application-secret.yml` 파일을 생성합니다.
 
 ```yaml
 spring:
-  datasource:
-    url: ${SUPABASE_DB_URL}
-    username: ${SUPABASE_DB_USER}
-    password: ${SUPABASE_DB_PASSWORD}
   security:
     oauth2:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
+            client-id: YOUR_GOOGLE_CLIENT_ID
+            client-secret: YOUR_GOOGLE_CLIENT_SECRET
+            scope:
+              - email
+              - profile
+
+jwt:
+  secret: YOUR_LONG_JWT_SECRET_AT_LEAST_32_BYTES
 ```
 
-### 2. 빌드 및 실행
+JWT secret은 최소 32바이트 이상으로 설정해야 합니다.
+
+Google Cloud Console OAuth 설정에는 로컬 테스트 기준으로 아래 redirect URI를 등록합니다.
+
+```text
+http://localhost:8080/login/oauth2/code/google
+```
+
+### 3. 백엔드 실행
+
+더미 동아리 데이터를 자동으로 넣고 테스트하려면 `local` 프로필로 실행합니다.
 
 ```bash
-./gradlew build
-java -jar build/libs/dongne-backend-0.0.1-SNAPSHOT.jar
+./gradlew bootRun --args='--spring.profiles.active=local'
 ```
 
----
+`local` 프로필에서는 앱 시작 시 동아리 더미데이터 30개와 각 동아리의 모집 공고 1개가 생성됩니다. 이미 `clubs` 테이블에 데이터가 있으면 더미데이터를 다시 넣지 않습니다.
 
-## 📄 License & Copyright
+### 4. Swagger 확인
 
-Copyright ⓒ 2026 **Team Dongne**. All rights reserved.
+```text
+http://localhost:8080/swagger
+```
 
-- **Backend Lead**: [hyeon-jin-park]
-- **Organization**: GDG on Campus Inha
-- **Note**: 본 프로젝트는 GDG on Campus Inha 활동의 일환으로 제작되었으며, 무단 전재 및 재배포를 금합니다.
+Swagger에서 JWT가 필요한 API는 우측 상단 Authorize에 아래 형식으로 입력합니다.
+
+```text
+Bearer <token>
+```
+
+## 로그인 및 동아리 목록 테스트
+
+현재 백엔드는 Google 로그인 성공 후 아래 주소로 이동합니다.
+
+```text
+http://localhost:3000/oauth2/redirect?token=<JWT>
+```
+
+그래서 프론트가 아직 없을 때는 테스트용 단일 파일 서버를 실행하면 됩니다.
+
+### 1. 테스트 페이지 실행
+
+새 터미널에서 실행합니다.
+
+```bash
+node oauth-club-test.mjs
+```
+
+브라우저에서 접속합니다.
+
+```text
+http://localhost:3000
+```
+
+### 2. 테스트 흐름
+
+1. `Google 로그인` 버튼 클릭
+2. Google 학교 계정으로 로그인
+3. 로그인 성공 후 `localhost:3000`으로 복귀
+4. 테스트 페이지가 URL의 `token`을 저장
+5. `/api/users/me` 호출
+6. `/api/clubs?page=0&size=10` 호출
+7. 왼쪽 동아리 목록 스크롤
+8. 동아리 클릭
+9. `/api/clubs/{clubId}` 상세 정보 확인
+
+## 주요 API
+
+### 로그인 시작
+
+```http
+GET /oauth2/authorization/google
+```
+
+브라우저에서 직접 이동하는 URL입니다.
+
+```text
+http://localhost:8080/oauth2/authorization/google
+```
+
+### 내 정보 조회
+
+```http
+GET /api/users/me
+Authorization: Bearer <token>
+```
+
+응답 예시:
+
+```json
+{
+  "id": 1,
+  "email": "student@inha.edu",
+  "name": "홍길동"
+}
+```
+
+### 동아리 목록 조회
+
+```http
+GET /api/clubs?page=0&size=20
+Authorization: Bearer <token>
+```
+
+응답 예시:
+
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "name": "GDG on Campus Inha",
+      "description": "개발과 기술 공유를 중심으로 활동하는 학생 커뮤니티입니다.",
+      "category": "IT/개발",
+      "profileImg": "https://placehold.co/400x400?text=gdg-on-campus-inha"
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "hasNext": true
+}
+```
+
+### 동아리 상세 조회
+
+```http
+GET /api/clubs/{clubId}
+Authorization: Bearer <token>
+```
+
+응답에는 동아리 기본 정보, 자세한 활동 설명, 연락처, 인스타그램 URL, 활성 모집 공고가 포함됩니다.
+
+## curl 테스트 예시
+
+로그인으로 받은 JWT가 있다고 가정합니다.
+
+```bash
+TOKEN="YOUR_BACKEND_JWT"
+```
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8080/api/users/me
+```
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/api/clubs?page=0&size=20"
+```
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8080/api/clubs/1
+```
+
+## DB 설계 현황
+
+현재 핵심 테이블:
+
+- `users`
+- `clubs`
+- `club_managers`
+- `recruitments`
+- `applications`
+
+현재 MVP에서 우선 사용하는 테이블:
+
+- `users`
+- `clubs`
+- `recruitments`
+
+`clubs` 주요 필드:
+
+- `id`
+- `name`
+- `description`
+- `activity_description`
+- `category`
+- `profile_img`
+- `contact`
+- `instagram_url`
+- `created_at`
+- `updated_at`
+
+`recruitments` 주요 필드:
+
+- `id`
+- `club_id`
+- `title`
+- `summary`
+- `start_date`
+- `end_date`
+- `is_always_open`
+- `is_active`
+- `form_schema`
+- `created_at`
+- `updated_at`
+
+## Supabase 사용 계획
+
+로컬 개발은 Docker PostgreSQL로 진행하고, 팀 공유용 개발 DB는 Supabase PostgreSQL을 사용할 예정입니다.
+
+권장 순서:
+
+1. 로컬에서 로그인, 유저 조회, 동아리 목록, 동아리 상세 흐름 확인
+2. Supabase에 개발 DB 생성
+3. Supabase 접속 정보를 환경 변수 또는 secret yml로 분리
+4. 백엔드 배포 환경에서 Supabase DB 연결
+5. 팀원이 같은 dev DB로 통합 테스트
+
+## 주의사항
+
+- API 호출에 사용하는 토큰은 Google access token이 아니라 **백엔드가 발급한 JWT**입니다.
+- 동아리 목록과 상세 조회는 현재 정책상 로그인한 사용자만 접근 가능합니다.
+- `application-secret.yml`은 절대 Git에 올리지 않습니다.
+- `OAuth2SuccessHandler`의 프론트 redirect URL은 현재 로컬 테스트용 `http://localhost:3000`입니다. 실제 프론트 배포 후에는 환경 변수 기반으로 변경해야 합니다.
+- `local` 프로필 더미데이터는 개발 테스트용입니다. 운영 DB에서는 사용하지 않습니다.
+
+## 테스트
+
+```bash
+./gradlew test
+```
+
+최근 확인 결과:
+
+```text
+BUILD SUCCESSFUL
+```
+
+## License
+
+Copyright 2026 Team Dongne.
