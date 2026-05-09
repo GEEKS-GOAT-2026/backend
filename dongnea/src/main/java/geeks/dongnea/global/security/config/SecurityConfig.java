@@ -2,6 +2,7 @@ package geeks.dongnea.global.security.config;
 
 import geeks.dongnea.global.security.jwt.JwtAuthenticationFilter;
 import geeks.dongnea.global.security.oauth.CustomOAuth2UserService;
+import geeks.dongnea.global.security.oauth.OAuth2FailureHandler;
 import geeks.dongnea.global.security.oauth.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +24,7 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final OAuth2FailureHandler oAuth2FailureHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
@@ -80,6 +82,7 @@ public class SecurityConfig {
                                         .userService(customOAuth2UserService) // 이메일 검사기
                                 )
                                 .successHandler(oAuth2SuccessHandler)
+                                .failureHandler(oAuth2FailureHandler)
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
