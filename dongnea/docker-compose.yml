@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  postgres-local:
+    image: postgres:15 # non-alpine 버전으로 변경 (alpine 호환성 문제 해결)
+    container_name: dongnea-postgres
+    ports:
+      - "5432:5432" # 내 컴퓨터의 5432 포트와 도커의 5432 포트를 연결
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: dongnea_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data # 도커를 껐다 켜도 데이터가 날아가지 않게 저장
+    restart: always
+
+volumes:
+  postgres-data:
