@@ -135,3 +135,9 @@ Author: GitHub Copilot (GPT-5.3-Codex)
   - pagination and sort object are preserved
 - Validation re-run completed successfully with `./gradlew test`.
 
+
+## Update Log - 2026-05-14 (KST) - Test Page Removal & OAuth Handler
+- Deprecated the local static OAuth test page `dongnea/oauth-club-test.mjs` and trimmed it to a placeholder. The project no longer recommends using the static test page; instead use the real frontend or integration tests for OAuth validation.
+- OAuth handlers updated to use configurable `app.frontend.redirect-uri` and to deliver JWT in query parameter for development verification.
+- `README.md` updated to remove references to the test page and document the `?token=<JWT>` redirect contract. Reminder: query-token delivery is for development only; switch to HTTP-only cookies or postMessage flow for production.
+- Committed and pushed changes to `main` branch.

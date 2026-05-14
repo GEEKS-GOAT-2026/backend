@@ -47,9 +47,8 @@ Google 로그인 -> 인하대 계정 검증 -> users 저장/조회 -> 동아리 
 
 ```text
 dongnea
-├── build.gradle
-├── docker-compose.yml
-├── oauth-club-test.mjs
+    ├── build.gradle
+    ├── docker-compose.yml
 └── src/main
     ├── java/geeks/dongnea
     │   ├── domain
@@ -149,31 +148,25 @@ http://localhost:3000/oauth2/redirect?token=<JWT>
 
 그래서 프론트가 아직 없을 때는 테스트용 단일 파일 서버를 실행하면 됩니다.
 
-### 1. 테스트 페이지 실행
+> 개발 초기에는 별도의 테스트용 정적 페이지가 제공되었으나, 현재는 실제 프론트(또는 통합 테스트 환경)를 사용해 연동하도록 변경되었습니다.
 
-새 터미널에서 실행합니다.
+프론트와의 인증 연동 방법:
 
-```bash
-node oauth-club-test.mjs
-```
-
-브라우저에서 접속합니다.
+1. 백엔드에서 OAuth2 로그인을 시작합니다:
 
 ```text
-http://localhost:3000
+http://localhost:8080/oauth2/authorization/google
 ```
 
-### 2. 테스트 흐름
+2. 로그인 성공 시 백엔드는 `app.frontend.redirect-uri`로 설정된 프론트 주소로 리다이렉트하며, 개발 설정에서는 다음과 같이 JWT를 쿼리 파라미터로 전달합니다:
 
-1. `Google 로그인` 버튼 클릭
-2. Google 학교 계정으로 로그인
-3. 로그인 성공 후 `localhost:3000`으로 복귀
-4. 테스트 페이지가 URL의 `token`을 저장
-5. `/api/users/me` 호출
-6. `/api/clubs?page=0&size=10` 호출
-7. 왼쪽 동아리 목록 스크롤
-8. 동아리 클릭
-9. `/api/clubs/{clubId}` 상세 정보 확인
+```text
+http://{FRONTEND_HOST}/?token=<JWT>
+```
+
+3. 프론트는 `token`을 받아 저장한 뒤 (`localStorage` 또는 메모리), 이후 API 호출에 `Authorization: Bearer <token>` 헤더를 포함시켜 백엔드에 요청합니다.
+
+테스트용 정적 페이지는 더 이상 프로젝트에서 권장되지 않으므로, 프론트가 준비되기 전에는 간단한 클라이언트(예: Postman 또는 임시 SPA)를 사용해 연동을 확인하세요.
 
 ## 주요 API
 
