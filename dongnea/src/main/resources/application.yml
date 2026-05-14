@@ -33,3 +33,8 @@ logging:
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
     geeks.dongnea: DEBUG
+
+# Frontend integration (development default). Change in application-secret.yml or environment for staging/production.
+app:
+  frontend:
+    redirect-uri: http://localhost:3000

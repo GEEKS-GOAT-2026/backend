@@ -20,13 +20,16 @@ public class ClubController {
     private final ClubService clubService;
 
     @GetMapping
-    @Operation(summary = "전체 동아리 목록 조회", description = "로그인한 사용자가 동아리 목록을 페이지 단위로 조회합니다.")
+    @Operation(summary = "전체 동아리 목록 조회", description = "로그인한 사용자가 동아리 목록을 페이지 단위로 조회하고, 카테고리/키워드/활성 모집 여부로 필터링합니다.")
     public ResponseEntity<ClubPageResponse> getClubs(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean hasActiveRecruitment
     ) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
-        return ResponseEntity.ok(clubService.getClubs(pageRequest));
+        return ResponseEntity.ok(clubService.getClubs(pageRequest, category, keyword, hasActiveRecruitment));
     }
 
     @GetMapping("/{clubId}")

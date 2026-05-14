@@ -5,7 +5,7 @@
 현재 MVP 우선순위는 다음 사용자 흐름입니다.
 
 ```text
-Google 로그인 -> 인하대 계정 검증 -> users 저장/조회 -> 동아리 목록 무한 스크롤 -> 동아리 상세 확인
+Google 로그인 -> 인하대 계정 검증 -> users 저장/조회 -> 동아리 목록 무한 스크롤 -> 동아리 필터링 -> 동아리 상세 확인
 ```
 
 ## 현재 구현 상태
@@ -210,6 +210,13 @@ Authorization: Bearer <token>
 
 ```http
 GET /api/clubs?page=0&size=20
+Authorization: Bearer <token>
+```
+
+필터 파라미터를 함께 보낼 수 있습니다.
+
+```http
+GET /api/clubs?page=0&size=20&category=IT/개발&keyword=AI&hasActiveRecruitment=true
 Authorization: Bearer <token>
 ```
 

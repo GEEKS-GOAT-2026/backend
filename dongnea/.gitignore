@@ -38,3 +38,6 @@ out/
 
 ### Custom Secrets 구글 인증 ###
 src/main/resources/application-secret.yml
+PRD.md
+SESSION_CONTEXT_APPEND_ONLY.md
+TODO.md

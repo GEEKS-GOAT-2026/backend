@@ -3,16 +3,21 @@ package geeks.dongnea.global.security.oauth;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 @Component
 public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler {
+
+    @Value("${app.frontend.redirect-uri:http://localhost:3000}")
+    private String frontendRedirectUri;
 
     @Override
     public void onAuthenticationFailure(
@@ -20,11 +25,14 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
             HttpServletResponse response,
             AuthenticationException exception
     ) throws IOException, ServletException {
+        // 내부 예외 메시지는 민감할 수 있으므로 사용자 친화적인 메시지로 변환
+        String userMessage = "로그인에 실패했습니다. 학교 계정(@inha.edu 또는 @inha.ac.kr)으로 다시 시도하세요.";
+        String encodedMessage = URLEncoder.encode(userMessage, StandardCharsets.UTF_8.name());
+
         String targetUrl = UriComponentsBuilder
-                .fromUriString("http://localhost:3000/oauth2/redirect")
+                .fromUriString(frontendRedirectUri)
                 .queryParam("error", "oauth_login_failed")
-                .queryParam("message", exception.getMessage())
-                .encode(StandardCharsets.UTF_8)
+                .queryParam("message", encodedMessage)
                 .build()
                 .toUriString();
 

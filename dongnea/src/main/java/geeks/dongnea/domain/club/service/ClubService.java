@@ -29,8 +29,12 @@ public class ClubService {
     private final RecruitmentRepository recruitmentRepository;
     private final UserRepository userRepository;
 
-    public ClubPageResponse getClubs(Pageable pageable) {
-        Page<ClubListResponse> clubs = clubRepository.findAll(pageable)
+    public ClubPageResponse getClubs(Pageable pageable, String category, String keyword, Boolean hasActiveRecruitment) {
+        Page<ClubListResponse> clubs = clubRepository.findClubsForList(
+                        normalize(category),
+                        normalize(keyword),
+                        hasActiveRecruitment,
+                        pageable)
                 .map(ClubListResponse::from);
 
         return ClubPageResponse.from(clubs);
@@ -65,5 +69,14 @@ public class ClubService {
                 .build();
 
         clubManagerRepository.save(manager);
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return trimmed.isBlank() ? null : trimmed;
     }
 }
