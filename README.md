@@ -20,8 +20,25 @@ Google 로그인 -> 인하대 계정 검증 -> users 저장/조회 -> 동아리 
 - `GET /api/users/me` 내 정보 조회
 - `GET /api/clubs?page=0&size=20` 동아리 목록 페이지네이션
 - `GET /api/clubs/{clubId}` 동아리 상세 조회
-- 로컬 테스트용 동아리 더미데이터 30개
-- OAuth + 동아리 목록 테스트용 단일 Node 페이지
+- 동아리 목록 카테고리/키워드/모집 상태 필터
+- 모집 상태 계산
+  - `isActive=true`
+  - 상시모집이거나 현재 날짜가 `startDate ~ endDate` 사이일 때 가입 가능
+- 동아리 목록 응답에 `activeRecruitment`, `recruitmentDisplayText` 제공
+- 로컬 테스트용 동아리 더미데이터 60개
+  - 모집중 50개
+  - 모집마감 10개
+  - 상시모집/기간모집/기간만료 케이스 포함
+- 행사 도메인 1차 구현
+  - `events` 테이블
+  - `GET /api/events`
+  - `GET /api/events/recent`
+- 회장 페이지용 회원/신청자 더미 도메인 1차 구현
+  - `club_members` 테이블
+  - `GET /api/clubs/{clubId}/members`
+  - 신청자 수락/거절 API
+- local 프로필 전용 테스트 토큰 발급 API
+  - `GET /api/local/auth-token`
 
 ### 아직 실험/초안 상태
 
@@ -54,6 +71,7 @@ dongnea
     │   ├── domain
     │   │   ├── user
     │   │   ├── club
+    │   │   ├── event
     │   │   └── application
     │   └── global
     │       ├── config
@@ -124,7 +142,17 @@ http://localhost:8080/login/oauth2/code/google
 ./gradlew bootRun --args='--spring.profiles.active=local'
 ```
 
-`local` 프로필에서는 앱 시작 시 동아리 더미데이터 30개와 각 동아리의 모집 공고 1개가 생성됩니다. 이미 `clubs` 테이블에 데이터가 있으면 더미데이터를 다시 넣지 않습니다.
+`local` 프로필에서는 앱 시작 시 테스트 데이터를 자동으로 생성합니다.
+
+- 동아리 더미데이터 총 60개
+- 모집 공고 더미데이터
+  - 상시모집
+  - 현재 모집 기간
+  - 기간 만료
+- 행사 더미데이터
+- 회장 페이지 회원/신청자 더미데이터
+
+기존 30개 동아리는 `clubs` 테이블이 비어 있을 때만 생성됩니다. 추가 30개 동아리는 이름 기준으로 존재 여부를 확인한 뒤 없을 때만 생성됩니다.
 
 ### 4. Swagger 확인
 
@@ -143,7 +171,7 @@ Bearer <token>
 현재 백엔드는 Google 로그인 성공 후 아래 주소로 이동합니다.
 
 ```text
-http://localhost:3000/oauth2/redirect?token=<JWT>
+http://localhost:3000/login?token=<JWT>
 ```
 
 그래서 프론트가 아직 없을 때는 테스트용 단일 파일 서버를 실행하면 됩니다.
@@ -161,12 +189,40 @@ http://localhost:8080/oauth2/authorization/google
 2. 로그인 성공 시 백엔드는 `app.frontend.redirect-uri`로 설정된 프론트 주소로 리다이렉트하며, 개발 설정에서는 다음과 같이 JWT를 쿼리 파라미터로 전달합니다:
 
 ```text
-http://{FRONTEND_HOST}/?token=<JWT>
+http://{FRONTEND_HOST}/login?token=<JWT>
 ```
 
 3. 프론트는 `token`을 받아 저장한 뒤 (`localStorage` 또는 메모리), 이후 API 호출에 `Authorization: Bearer <token>` 헤더를 포함시켜 백엔드에 요청합니다.
 
 테스트용 정적 페이지는 더 이상 프로젝트에서 권장되지 않으므로, 프론트가 준비되기 전에는 간단한 클라이언트(예: Postman 또는 임시 SPA)를 사용해 연동을 확인하세요.
+
+## 로컬 테스트용 토큰
+
+`local` 프로필에서만 아래 API가 열립니다. OAuth 흐름 없이 백엔드 JWT가 필요한 API를 확인할 때 사용합니다.
+
+```http
+GET /api/local/auth-token
+```
+
+응답 예시:
+
+```json
+{
+  "accessToken": "BACKEND_JWT"
+}
+```
+
+사용 예시:
+
+```bash
+TOKEN=$(curl -s "http://localhost:8080/api/local/auth-token" \
+  | node -pe "JSON.parse(require('fs').readFileSync(0,'utf8')).accessToken")
+
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/api/clubs?page=0&size=5"
+```
+
+주의: 이 API는 `@Profile("local")` 전용입니다. 운영/배포 프로필에서는 컨트롤러가 등록되지 않습니다.
 
 ## 주요 API
 
@@ -223,7 +279,9 @@ Authorization: Bearer <token>
       "name": "GDG on Campus Inha",
       "description": "개발과 기술 공유를 중심으로 활동하는 학생 커뮤니티입니다.",
       "category": "IT/개발",
-      "profileImg": "https://placehold.co/400x400?text=gdg-on-campus-inha"
+      "profileImg": "https://placehold.co/400x400?text=gdg-on-campus-inha",
+      "activeRecruitment": true,
+      "recruitmentDisplayText": "상시모집"
     }
   ],
   "page": 0,
@@ -231,6 +289,25 @@ Authorization: Bearer <token>
   "hasNext": true
 }
 ```
+
+모집 상태 필터는 기존처럼 boolean으로 유지합니다.
+
+```http
+GET /api/clubs?hasActiveRecruitment=true
+GET /api/clubs?hasActiveRecruitment=false
+```
+
+`activeRecruitment=true` 판정 기준:
+
+- 모집 공고의 `isActive=true`
+- 그리고 `isAlwaysOpen=true` 이거나
+- 현재 날짜가 `startDate` 이상이고 `endDate` 이하
+
+`recruitmentDisplayText`는 프론트 표시용 필드입니다.
+
+- 상시모집: `"상시모집"`
+- 기간모집: `"2026-05-16 ~ 2026-06-06"`
+- 모집마감: `"모집마감"`
 
 ### 동아리 상세 조회
 
@@ -240,6 +317,190 @@ Authorization: Bearer <token>
 ```
 
 응답에는 동아리 기본 정보, 자세한 활동 설명, 연락처, 인스타그램 URL, 활성 모집 공고가 포함됩니다.
+
+### 행사 목록 조회
+
+```http
+GET /api/events?page=0&size=20
+Authorization: Bearer <token>
+```
+
+필터 파라미터:
+
+```http
+GET /api/events?page=0&size=20&keyword=정기&clubId=1&fromDate=2026-05-01&toDate=2026-06-30
+Authorization: Bearer <token>
+```
+
+응답 예시:
+
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "clubId": 1,
+      "clubName": "GDG on Campus Inha",
+      "title": "GDG on Campus Inha 정기 활동",
+      "description": "GDG on Campus Inha에서 준비한 공개 활동 및 교류 행사입니다.",
+      "eventDate": "2026-05-22",
+      "location": "인하대학교 학생회관",
+      "imageUrl": "https://placehold.co/400x400?text=gdg-on-campus-inha"
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "hasNext": true
+}
+```
+
+### 메인 최근/예정 행사 조회
+
+```http
+GET /api/events/recent?size=3
+Authorization: Bearer <token>
+```
+
+응답 예시:
+
+```json
+[
+  {
+    "id": 1,
+    "clubId": 1,
+    "clubName": "GDG on Campus Inha",
+    "title": "GDG on Campus Inha 정기 활동",
+    "description": "GDG on Campus Inha에서 준비한 공개 활동 및 교류 행사입니다.",
+    "eventDate": "2026-05-22",
+    "location": "인하대학교 학생회관",
+    "imageUrl": "https://placehold.co/400x400?text=gdg-on-campus-inha"
+  }
+]
+```
+
+### 동아리 회원/신청자 목록 조회
+
+회장 페이지 1차 연동용 API입니다. 현재는 `club_members` 테이블의 local 더미 데이터를 기준으로 동작합니다.
+
+```http
+GET /api/clubs/{clubId}/members?status=applicant&keyword=홍길동
+Authorization: Bearer <token>
+```
+
+응답 예시:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "홍길동",
+    "major": "컴퓨터공학과 24학번",
+    "email": "asdasd@gmail.com",
+    "birth": "2001-12-12",
+    "phone": "010-1234-5678",
+    "image": "",
+    "status": "applicant"
+  }
+]
+```
+
+### 동아리 신청자 수락
+
+```http
+PATCH /api/clubs/{clubId}/members/{memberId}/accept
+Authorization: Bearer <token>
+```
+
+신청자 상태를 `member`로 변경합니다.
+
+### 동아리 신청자 거절
+
+```http
+DELETE /api/clubs/{clubId}/members/{memberId}
+Authorization: Bearer <token>
+```
+
+현재 구현은 row를 삭제하지 않고 상태를 `rejected`로 변경합니다.
+
+## DB 구조 요약
+
+현재 프론트 연동에 직접 쓰는 주요 테이블은 다음과 같습니다.
+
+### `clubs`
+
+동아리 기본 정보입니다.
+
+주요 필드:
+
+- `id`
+- `name`
+- `description`
+- `activity_description`
+- `category`
+- `profile_img`
+- `contact`
+- `instagram_url`
+- `created_at`
+- `updated_at`
+
+### `recruitments`
+
+동아리 모집 공고입니다.
+
+주요 필드:
+
+- `id`
+- `club_id`
+- `title`
+- `summary`
+- `start_date`
+- `end_date`
+- `is_always_open`
+- `is_active`
+- `form_schema` JSONB
+- `created_at`
+- `updated_at`
+
+현재 `GET /api/clubs`의 가입 가능/불가능 필터는 이 테이블의 `is_active`, `is_always_open`, `start_date`, `end_date`를 기준으로 계산합니다.
+
+### `events`
+
+동아리 행사 정보입니다.
+
+주요 필드:
+
+- `id`
+- `club_id`
+- `title`
+- `description`
+- `event_date`
+- `location`
+- `image_url`
+- `published`
+- `created_at`
+- `updated_at`
+
+### `club_members`
+
+회장 페이지 1차 연동용 회원/신청자 정보입니다.
+
+주요 필드:
+
+- `id`
+- `club_id`
+- `name`
+- `major`
+- `email`
+- `birth`
+- `phone`
+- `image`
+- `status`
+
+`status` 값:
+
+- `member`
+- `applicant`
+- `rejected`
 
 ## curl 테스트 예시
 
@@ -257,6 +518,25 @@ curl -H "Authorization: Bearer $TOKEN" \
 ```bash
 curl -H "Authorization: Bearer $TOKEN" \
   "http://localhost:8080/api/clubs?page=0&size=20"
+```
+
+모집중/마감 필터:
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/api/clubs?page=0&size=5&hasActiveRecruitment=true"
+```
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/api/clubs?page=0&size=5&hasActiveRecruitment=false"
+```
+
+행사:
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/api/events/recent?size=3"
 ```
 
 ```bash

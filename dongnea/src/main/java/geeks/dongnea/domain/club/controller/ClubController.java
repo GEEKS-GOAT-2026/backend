@@ -1,6 +1,7 @@
 package geeks.dongnea.domain.club.controller;
 
 import geeks.dongnea.domain.club.dto.ClubDetailResponse;
+import geeks.dongnea.domain.club.dto.ClubMemberResponse;
 import geeks.dongnea.domain.club.dto.ClubPageResponse;
 import geeks.dongnea.domain.club.service.ClubService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,6 +11,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/clubs")
@@ -36,6 +39,35 @@ public class ClubController {
     @Operation(summary = "동아리 상세 조회", description = "동아리 소개, 자세한 활동, 활성 모집 정보를 조회합니다.")
     public ResponseEntity<ClubDetailResponse> getClub(@PathVariable Long clubId) {
         return ResponseEntity.ok(clubService.getClub(clubId));
+    }
+
+    @GetMapping("/{clubId}/members")
+    @Operation(summary = "동아리 회원/신청자 목록 조회", description = "회장 페이지에서 사용할 회원 또는 신청자 목록을 조회합니다.")
+    public ResponseEntity<List<ClubMemberResponse>> getClubMembers(
+            @PathVariable Long clubId,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String keyword
+    ) {
+        return ResponseEntity.ok(clubService.getClubMembers(clubId, status, keyword));
+    }
+
+    @PatchMapping("/{clubId}/members/{memberId}/accept")
+    @Operation(summary = "동아리 신청자 수락", description = "신청자 상태를 재원(member)으로 변경합니다.")
+    public ResponseEntity<ClubMemberResponse> acceptMember(
+            @PathVariable Long clubId,
+            @PathVariable Long memberId
+    ) {
+        return ResponseEntity.ok(clubService.acceptMember(clubId, memberId));
+    }
+
+    @DeleteMapping("/{clubId}/members/{memberId}")
+    @Operation(summary = "동아리 신청자 거절", description = "신청자 상태를 rejected로 변경합니다.")
+    public ResponseEntity<Void> rejectMember(
+            @PathVariable Long clubId,
+            @PathVariable Long memberId
+    ) {
+        clubService.rejectMember(clubId, memberId);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{clubId}/managers")

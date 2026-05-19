@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+
 public interface ClubRepository extends JpaRepository<Club, Long> {
     // 이름으로 동아리 검색 (필요 시)
     boolean existsByName(String name);
@@ -31,6 +33,13 @@ public interface ClubRepository extends JpaRepository<Club, Long> {
                     from Recruitment r
                     where r.club = c
                       and r.isActive = true
+                      and (
+                        r.isAlwaysOpen = true
+                        or (
+                          (r.startDate is null or r.startDate <= :today)
+                          and (r.endDate is null or r.endDate >= :today)
+                        )
+                      )
                   )
                 )
                 or (
@@ -40,6 +49,13 @@ public interface ClubRepository extends JpaRepository<Club, Long> {
                     from Recruitment r
                     where r.club = c
                       and r.isActive = true
+                      and (
+                        r.isAlwaysOpen = true
+                        or (
+                          (r.startDate is null or r.startDate <= :today)
+                          and (r.endDate is null or r.endDate >= :today)
+                        )
+                      )
                   )
                 )
               )
@@ -48,6 +64,7 @@ public interface ClubRepository extends JpaRepository<Club, Long> {
             @Param("category") String category,
             @Param("keyword") String keyword,
             @Param("hasActiveRecruitment") Boolean hasActiveRecruitment,
+            @Param("today") LocalDate today,
             Pageable pageable
     );
 }

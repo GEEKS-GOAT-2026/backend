@@ -34,7 +34,7 @@ public class RecruitmentSummaryResponse {
         this.active = active;
     }
 
-    public static RecruitmentSummaryResponse from(Recruitment recruitment) {
+    public static RecruitmentSummaryResponse from(Recruitment recruitment, LocalDate today) {
         return new RecruitmentSummaryResponse(
                 recruitment.getId(),
                 recruitment.getTitle(),
@@ -42,7 +42,7 @@ public class RecruitmentSummaryResponse {
                 recruitment.getStartDate(),
                 recruitment.getEndDate(),
                 recruitment.isAlwaysOpen(),
-                recruitment.isActive()
+                recruitment.isOpenOn(today)
         );
     }
 }

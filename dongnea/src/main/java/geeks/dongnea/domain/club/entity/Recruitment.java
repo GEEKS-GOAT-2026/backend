@@ -64,7 +64,8 @@ public class Recruitment {
             LocalDate startDate,
             LocalDate endDate,
             Boolean isAlwaysOpen,
-            Map<String, Object> formSchema
+            Map<String, Object> formSchema,
+            Boolean isActive
     ) {
         this.club = club;
         this.title = title;
@@ -73,5 +74,21 @@ public class Recruitment {
         this.endDate = endDate;
         this.isAlwaysOpen = Boolean.TRUE.equals(isAlwaysOpen);
         this.formSchema = formSchema;
+        this.isActive = isActive == null || Boolean.TRUE.equals(isActive);
+    }
+
+    public boolean isOpenOn(LocalDate today) {
+        if (!isActive) {
+            return false;
+        }
+
+        if (isAlwaysOpen) {
+            return true;
+        }
+
+        boolean started = startDate == null || !startDate.isAfter(today);
+        boolean notEnded = endDate == null || !endDate.isBefore(today);
+
+        return started && notEnded;
     }
 }

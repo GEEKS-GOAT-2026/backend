@@ -50,20 +50,28 @@ Google OAuth 로그인
   - `endDate`
   - `isAlwaysOpen`
 - 로컬 테스트용 더미 동아리 데이터 30개
+- 로컬 테스트용 더미 행사 데이터
+  - `GET /api/events`
+  - `GET /api/events/recent`
 - OAuth/동아리 목록 테스트용 단일 Node 테스트 페이지
 
 ## 진행 중
 
-### 1. 동아리 목록 API 안정화
+### 1. 프론트 더미 데이터 백엔드 이전
 
-- `GET /api/clubs`에 필터 파라미터 추가
-  - `category`
-  - `keyword`
-  - `hasActiveRecruitment`
-- 무한 스크롤 응답 유지
-  - `content`, `page`, `size`, `hasNext`
-- 정렬 기준은 우선 `name ASC` 유지
-- 프론트와 카드/필터 UI 계약 확인
+- 프론트 `main`, `clubs`, `events` 화면의 동아리/행사 더미 데이터를 백엔드 seed/API 기준으로 전환
+- 동아리 목록은 기존 `GET /api/clubs` 페이지네이션 응답 사용
+  - 프론트 카드 렌더링 기준 필드: `id`, `name`, `description`, `category`, `profileImg`, `activeRecruitment`
+  - 필터 파라미터: `category`, `keyword`, `hasActiveRecruitment`
+- 메인 최근 행사는 `GET /api/events/recent` 사용
+- 전체 행사 목록은 `GET /api/events` 사용
+  - 프론트 카드 렌더링 기준 필드: `id`, `clubId`, `clubName`, `title`, `description`, `eventDate`, `location`, `imageUrl`
+  - 필터 파라미터: `keyword`, `clubId`, `fromDate`, `toDate`
+- 회장 페이지의 회원/신청자 더미는 지원서/관리자 권한 API 실제화 단계에서 분리 처리
+  - 1차로 `club_members` 테이블과 `GET /api/clubs/{clubId}/members` 연결
+  - 프론트 회원/신청자 카드 기준 필드: `id`, `name`, `major`, `email`, `birth`, `phone`, `image`, `status`
+  - 필터 파라미터: `status`, `keyword`
+  - 수락/거절 API: `PATCH /api/clubs/{clubId}/members/{memberId}/accept`, `DELETE /api/clubs/{clubId}/members/{memberId}`
 
 ## 지금 프론트와 합의해야 할 것
 
@@ -82,6 +90,11 @@ Google OAuth 로그인
 - 상세 페이지에서 보여줄 모집 정보 표현
   - 기간 모집
   - 상시 모집
+- 행사 카드에 필요한 필드
+  - 현재 1차 계약: `id`, `clubId`, `clubName`, `title`, `description`, `eventDate`, `location`, `imageUrl`
+- 회장 페이지 회원/신청자 목록의 실제 출처
+  - 현재 프론트 카드 형태 기준으로 `club_members` 1차 테이블을 추가
+  - 이후 실제 지원서 제출 플로우와 연결할 때 `applications -> club_members(applicant)` 생성 흐름 결정 필요
 
 ## 다음 백엔드 우선순위
 
@@ -104,6 +117,12 @@ Google OAuth 로그인
 - 필터 API 1차 반영 완료 후 세부 조정
 - 필요하면 검색 범위/정렬/응답 필드 추가 논의
 - 이미지 URL 실제 저장소 정책 결정
+
+### 3-1. 행사 API 안정화
+
+- `events` 테이블 1차 추가
+- 메인/행사 페이지용 조회 API 추가
+- 이후 회장 권한 기반 행사 생성/수정/삭제 API 추가 논의
 
 ### 4. 모집 공고 API 실제화
 
