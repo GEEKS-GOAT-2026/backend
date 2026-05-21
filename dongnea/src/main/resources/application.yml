@@ -1,20 +1,20 @@
 spring:
   config:
-    import: classpath:application-secret.yml
+    import: optional:classpath:application-secret.yml
 
   application:
     name: dongnea-backend
 
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/dongnea_db
-    username: admin
-    password: 1234
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/dongnea_db}
+    username: ${SPRING_DATASOURCE_USERNAME:admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:1234}
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+    show-sql: ${SPRING_JPA_SHOW_SQL:true}
     properties:
       hibernate:
         format_sql: true
@@ -30,11 +30,11 @@ springdoc:
 
 logging:
   level:
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
-    geeks.dongnea: DEBUG
+    org.springframework.security: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY:DEBUG}
+    org.springframework.web: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB:DEBUG}
+    geeks.dongnea: ${LOGGING_LEVEL_GEEKS_DONGNEA:DEBUG}
 
 # Frontend integration (development default). Change in application-secret.yml or environment for staging/production.
 app:
   frontend:
-    redirect-uri: http://localhost:3000
+    redirect-uri: ${APP_FRONTEND_REDIRECT_URI:http://localhost:3000/login}
