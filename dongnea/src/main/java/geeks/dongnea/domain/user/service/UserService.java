@@ -15,21 +15,27 @@ public class UserService {
 
     @Transactional
     public User saveOrUpdate(String email, String name) {
+        String normalizedEmail = email == null ? null : email.trim().toLowerCase();
+
         // 1. 학교 계정 검증 (@inha.edu 또는 @inha.ac.kr)
-        if (email == null || !(email.endsWith("@inha.edu") || email.endsWith("@inha.ac.kr"))) {
+        if (normalizedEmail == null || !(normalizedEmail.endsWith("@inha.edu") || normalizedEmail.endsWith("@inha.ac.kr"))) {
             throw new IllegalArgumentException("인하대학교 계정만 이용 가능합니다.");
         }
 
         // 2. 이름 파싱 (박현진/학생/컴퓨터공학과 -> 박현진)
         String cleanName = (name != null && name.contains("/"))
                 ? name.split("/")[0] : name;
+        if (cleanName == null || cleanName.isBlank()) {
+            cleanName = normalizedEmail.substring(0, normalizedEmail.indexOf("@"));
+        }
+        String displayName = cleanName;
 
         // 3. Upsert 로직 (있으면 업데이트, 없으면 신규 가입)
-        return userRepository.findByEmail(email)
-                .map(user -> user.update(cleanName)) // User 엔티티에 update 메서드 필요!
+        return userRepository.findByEmail(normalizedEmail)
+                .map(user -> user.update(displayName)) // User 엔티티에 update 메서드 필요!
                 .orElseGet(() -> userRepository.save(User.builder()
-                        .email(email)
-                        .name(cleanName)
+                        .email(normalizedEmail)
+                        .name(displayName)
                         .build()));
     }
 

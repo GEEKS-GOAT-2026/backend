@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -17,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtUtil jwtUtil;
@@ -39,6 +41,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         String encodedToken = URLEncoder.encode(token, StandardCharsets.UTF_8.name());
         String separator = frontendRedirectUri.contains("?") ? "&" : "?";
         String targetUrl = frontendRedirectUri + separator + "token=" + encodedToken;
+
+        log.info("OAuth login succeeded. email={}, redirectUri={}", email, frontendRedirectUri);
 
         // 4. 프론트엔드로 리다이렉트
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
