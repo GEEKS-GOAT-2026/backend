@@ -7,6 +7,7 @@ import geeks.dongnea.global.security.oauth.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -64,6 +65,8 @@ public class SecurityConfig {
                                 "/api-docs/**",
                                 "/v3/api-docs",
                                 "/v3/api-docs/**",
+                                "/swagger",
+                                "/swagger/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/swagger-resources/**",
@@ -72,6 +75,7 @@ public class SecurityConfig {
                                 "/oauth2/**",
                                 "/login/**"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/clubs/**", "/api/events/**").permitAll()
 
                         // 나머지 모든 API는 무조건 로그인을 해야 접근 가능! (입구컷)
                         .anyRequest().authenticated()
