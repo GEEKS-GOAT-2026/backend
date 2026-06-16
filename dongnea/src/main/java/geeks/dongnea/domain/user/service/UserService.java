@@ -1,5 +1,7 @@
 package geeks.dongnea.domain.user.service;
 
+import geeks.dongnea.domain.club.dto.ManagedClubResponse;
+import geeks.dongnea.domain.club.repository.ClubManagerRepository;
 import geeks.dongnea.domain.user.dto.UserResponse;
 import geeks.dongnea.domain.user.entity.User;
 import geeks.dongnea.domain.user.repository.UserRepository;
@@ -12,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final ClubManagerRepository clubManagerRepository;
 
     @Transactional
     public User saveOrUpdate(String email, String name) {
@@ -50,6 +53,17 @@ public class UserService {
     }
 
     public UserResponse toResponse(User user) {
-        return new UserResponse(user.getId(), user.getEmail(), user.getName());
+        var managedClubs = clubManagerRepository.findByUser(user)
+                .stream()
+                .map(ManagedClubResponse::from)
+                .toList();
+
+        return new UserResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getName(),
+                !managedClubs.isEmpty(),
+                managedClubs
+        );
     }
 }

@@ -1,5 +1,7 @@
 package geeks.dongnea.domain.user.controller;
 
+import geeks.dongnea.domain.club.dto.ClubListResponse;
+import geeks.dongnea.domain.club.service.ClubService;
 import geeks.dongnea.domain.user.dto.UserResponse;
 import geeks.dongnea.domain.user.entity.User;
 import geeks.dongnea.domain.user.service.UserService;
@@ -10,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -17,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final ClubService clubService;
     private final CurrentUserService currentUserService;
 
     @GetMapping("/me")
@@ -25,5 +30,12 @@ public class UserController {
         User currentUser = currentUserService.getCurrentUser();
         UserResponse response = userService.toResponse(currentUser);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me/clubs")
+    @Operation(summary = "내 가입 동아리 조회", description = "현재 로그인한 유저가 가입된 동아리 목록을 반환합니다.")
+    public ResponseEntity<List<ClubListResponse>> getMyClubs() {
+        User currentUser = currentUserService.getCurrentUser();
+        return ResponseEntity.ok(clubService.getJoinedClubs(currentUser));
     }
 }

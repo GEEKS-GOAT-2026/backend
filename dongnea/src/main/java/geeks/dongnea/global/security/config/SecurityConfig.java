@@ -75,7 +75,8 @@ public class SecurityConfig {
                                 "/oauth2/**",
                                 "/login/**"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/clubs/**", "/api/events/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/clubs", "/api/clubs/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/events", "/api/events/recent").permitAll()
 
                         // 나머지 모든 API는 무조건 로그인을 해야 접근 가능! (입구컷)
                         .anyRequest().authenticated()

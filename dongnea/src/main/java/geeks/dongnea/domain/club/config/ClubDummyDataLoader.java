@@ -1,9 +1,13 @@
 package geeks.dongnea.domain.club.config;
 
 import geeks.dongnea.domain.club.entity.Club;
+import geeks.dongnea.domain.club.entity.ClubActivity;
 import geeks.dongnea.domain.club.entity.ClubMember;
+import geeks.dongnea.domain.club.entity.ClubNotice;
 import geeks.dongnea.domain.club.entity.Recruitment;
+import geeks.dongnea.domain.club.repository.ClubActivityRepository;
 import geeks.dongnea.domain.club.repository.ClubMemberRepository;
+import geeks.dongnea.domain.club.repository.ClubNoticeRepository;
 import geeks.dongnea.domain.club.repository.ClubRepository;
 import geeks.dongnea.domain.club.repository.RecruitmentRepository;
 import geeks.dongnea.domain.event.entity.Event;
@@ -24,6 +28,8 @@ import java.util.Map;
 public class ClubDummyDataLoader implements CommandLineRunner {
 
     private final ClubRepository clubRepository;
+    private final ClubActivityRepository clubActivityRepository;
+    private final ClubNoticeRepository clubNoticeRepository;
     private final ClubMemberRepository clubMemberRepository;
     private final RecruitmentRepository recruitmentRepository;
     private final EventRepository eventRepository;
@@ -78,7 +84,11 @@ public class ClubDummyDataLoader implements CommandLineRunner {
         clubRepository.findAll()
                 .stream()
                 .findFirst()
-                .ifPresent(this::saveClubMembers);
+                .ifPresent(club -> {
+                    saveClubMembers(club);
+                    saveClubActivities(club);
+                    saveClubNotices(club);
+                });
     }
 
     private Club club(String name, String description, String activityDescription, String category) {
@@ -257,6 +267,60 @@ public class ClubDummyDataLoader implements CommandLineRunner {
                 .image(image)
                 .status(status)
                 .build();
+    }
+
+    private void saveClubActivities(Club club) {
+        if (clubActivityRepository.countByClub(club) > 0) {
+            return;
+        }
+
+        List<ClubActivity> activities = List.of(
+                ClubActivity.builder()
+                        .club(club)
+                        .title("정기 세미나")
+                        .description("신입 부원을 위한 기술 세미나와 네트워킹을 진행했습니다.")
+                        .startDate(LocalDate.now().minusDays(21))
+                        .endDate(LocalDate.now().minusDays(21))
+                        .imageUrl(club.getProfileImg())
+                        .build(),
+                ClubActivity.builder()
+                        .club(club)
+                        .title("프로젝트 발표회")
+                        .description("팀별 프로젝트 결과물을 공유하고 피드백을 나눴습니다.")
+                        .startDate(LocalDate.now().minusDays(7))
+                        .endDate(LocalDate.now().minusDays(7))
+                        .imageUrl(club.getProfileImg())
+                        .build()
+        );
+
+        clubActivityRepository.saveAll(activities);
+    }
+
+    private void saveClubNotices(Club club) {
+        if (clubNoticeRepository.countByClub(club) > 0) {
+            return;
+        }
+
+        List<ClubNotice> notices = List.of(
+                ClubNotice.builder()
+                        .club(club)
+                        .title("신입 부원 OT 안내")
+                        .content("이번 학기 신입 부원 오리엔테이션 일정과 장소를 안내합니다.")
+                        .noticeDate(LocalDate.now().plusDays(2))
+                        .badge("필독")
+                        .pinned(true)
+                        .build(),
+                ClubNotice.builder()
+                        .club(club)
+                        .title("정기 활동 일정")
+                        .content("정기 활동은 매주 수요일 18시에 진행됩니다.")
+                        .noticeDate(LocalDate.now())
+                        .badge("일정")
+                        .pinned(false)
+                        .build()
+        );
+
+        clubNoticeRepository.saveAll(notices);
     }
 
     private record ClubSeed(String name, String description, String activityDescription, String category) {

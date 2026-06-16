@@ -1,7 +1,13 @@
 package geeks.dongnea.domain.club.controller;
 
+import geeks.dongnea.domain.application.dto.ApplicationResponse;
+import geeks.dongnea.domain.application.service.ApplicationService;
+import geeks.dongnea.domain.club.dto.ClubActivityRequest;
+import geeks.dongnea.domain.club.dto.ClubActivityResponse;
 import geeks.dongnea.domain.club.dto.ClubDetailResponse;
 import geeks.dongnea.domain.club.dto.ClubMemberResponse;
+import geeks.dongnea.domain.club.dto.ClubNoticeRequest;
+import geeks.dongnea.domain.club.dto.ClubNoticeResponse;
 import geeks.dongnea.domain.club.dto.ClubPageResponse;
 import geeks.dongnea.domain.club.service.ClubService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +27,7 @@ import java.util.List;
 public class ClubController {
 
     private final ClubService clubService;
+    private final ApplicationService applicationService;
 
     @GetMapping
     @Operation(summary = "전체 동아리 목록 조회", description = "로그인한 사용자가 동아리 목록을 페이지 단위로 조회하고, 카테고리/키워드/활성 모집 여부로 필터링합니다.")
@@ -49,6 +56,82 @@ public class ClubController {
             @RequestParam(required = false) String keyword
     ) {
         return ResponseEntity.ok(clubService.getClubMembers(clubId, status, keyword));
+    }
+
+    @GetMapping("/{clubId}/applications")
+    @Operation(summary = "동아리 지원서 목록 조회", description = "동아리 관리자가 해당 동아리의 지원서 목록을 조회합니다.")
+    public ResponseEntity<List<ApplicationResponse>> getClubApplications(@PathVariable Long clubId) {
+        return ResponseEntity.ok(applicationService.getClubApplications(clubId));
+    }
+
+    @GetMapping("/{clubId}/activities")
+    @Operation(summary = "동아리 활동기록 조회", description = "동아리 상세 화면에서 사용할 활동기록 목록을 조회합니다.")
+    public ResponseEntity<List<ClubActivityResponse>> getClubActivities(@PathVariable Long clubId) {
+        return ResponseEntity.ok(clubService.getClubActivities(clubId));
+    }
+
+    @PostMapping("/{clubId}/activities")
+    @Operation(summary = "동아리 활동기록 작성", description = "동아리 관리자가 활동기록을 작성합니다.")
+    public ResponseEntity<ClubActivityResponse> createClubActivity(
+            @PathVariable Long clubId,
+            @RequestBody ClubActivityRequest request
+    ) {
+        return ResponseEntity.ok(clubService.createClubActivity(clubId, request));
+    }
+
+    @PatchMapping("/{clubId}/activities/{activityId}")
+    @Operation(summary = "동아리 활동기록 수정", description = "동아리 관리자가 활동기록을 수정합니다.")
+    public ResponseEntity<ClubActivityResponse> updateClubActivity(
+            @PathVariable Long clubId,
+            @PathVariable Long activityId,
+            @RequestBody ClubActivityRequest request
+    ) {
+        return ResponseEntity.ok(clubService.updateClubActivity(clubId, activityId, request));
+    }
+
+    @DeleteMapping("/{clubId}/activities/{activityId}")
+    @Operation(summary = "동아리 활동기록 삭제", description = "동아리 관리자가 활동기록을 삭제합니다.")
+    public ResponseEntity<Void> deleteClubActivity(
+            @PathVariable Long clubId,
+            @PathVariable Long activityId
+    ) {
+        clubService.deleteClubActivity(clubId, activityId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{clubId}/notices")
+    @Operation(summary = "동아리 공지 조회", description = "동아리 상세 화면에서 사용할 공지 목록을 조회합니다.")
+    public ResponseEntity<List<ClubNoticeResponse>> getClubNotices(@PathVariable Long clubId) {
+        return ResponseEntity.ok(clubService.getClubNotices(clubId));
+    }
+
+    @PostMapping("/{clubId}/notices")
+    @Operation(summary = "동아리 공지 작성", description = "동아리 관리자가 공지를 작성합니다.")
+    public ResponseEntity<ClubNoticeResponse> createClubNotice(
+            @PathVariable Long clubId,
+            @RequestBody ClubNoticeRequest request
+    ) {
+        return ResponseEntity.ok(clubService.createClubNotice(clubId, request));
+    }
+
+    @PatchMapping("/{clubId}/notices/{noticeId}")
+    @Operation(summary = "동아리 공지 수정", description = "동아리 관리자가 공지를 수정합니다.")
+    public ResponseEntity<ClubNoticeResponse> updateClubNotice(
+            @PathVariable Long clubId,
+            @PathVariable Long noticeId,
+            @RequestBody ClubNoticeRequest request
+    ) {
+        return ResponseEntity.ok(clubService.updateClubNotice(clubId, noticeId, request));
+    }
+
+    @DeleteMapping("/{clubId}/notices/{noticeId}")
+    @Operation(summary = "동아리 공지 삭제", description = "동아리 관리자가 공지를 삭제합니다.")
+    public ResponseEntity<Void> deleteClubNotice(
+            @PathVariable Long clubId,
+            @PathVariable Long noticeId
+    ) {
+        clubService.deleteClubNotice(clubId, noticeId);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{clubId}/members/{memberId}/accept")

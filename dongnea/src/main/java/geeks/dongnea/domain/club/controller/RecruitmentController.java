@@ -1,15 +1,13 @@
 package geeks.dongnea.domain.club.controller;
 
-import geeks.dongnea.domain.club.entity.Club;
-import geeks.dongnea.domain.club.entity.Recruitment;
-import geeks.dongnea.domain.club.repository.ClubRepository;
-import geeks.dongnea.domain.club.repository.RecruitmentRepository;
+import geeks.dongnea.domain.club.dto.RecruitmentCreateRequest;
+import geeks.dongnea.domain.club.dto.RecruitmentSummaryResponse;
+import geeks.dongnea.domain.club.service.RecruitmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/recruitments")
@@ -17,25 +15,21 @@ import java.util.Map;
 @Tag(name = "Recruitment API", description = "모집 공고 관련 API")
 public class RecruitmentController {
 
-    private final RecruitmentRepository recruitmentRepository;
-    private final ClubRepository clubRepository;
+    private final RecruitmentService recruitmentService;
 
     @PostMapping
-    @Operation(summary = "모집 공고 생성 (JSONB 폼 테스트)", description = "동적 질문 폼을 포함하여 모집 공고를 생성합니다.")
-    public String createRecruitment(
+    @Operation(summary = "모집 공고 생성", description = "동아리 관리자가 동적 질문 폼을 포함한 모집 공고를 생성합니다.")
+    public ResponseEntity<RecruitmentSummaryResponse> createRecruitment(
             @RequestParam Long clubId,
-            @RequestParam String title,
-            @RequestBody Map<String, Object> formSchema) { // JSONB 데이터를 Map으로 받음
+            @RequestBody RecruitmentCreateRequest request
+    ) {
+        return ResponseEntity.ok(recruitmentService.createRecruitment(clubId, request));
+    }
 
-        Club club = clubRepository.findById(clubId).orElseThrow();
-
-        Recruitment recruitment = Recruitment.builder()
-                .club(club)
-                .title(title)
-                .formSchema(formSchema)
-                .build();
-
-        recruitmentRepository.save(recruitment);
-        return "모집 공고가 성공적으로 생성되었습니다!";
+    @PatchMapping("/{recruitmentId}/close")
+    @Operation(summary = "모집 공고 마감", description = "동아리 관리자가 모집 공고를 비활성화합니다.")
+    public ResponseEntity<Void> closeRecruitment(@PathVariable Long recruitmentId) {
+        recruitmentService.closeRecruitment(recruitmentId);
+        return ResponseEntity.noContent().build();
     }
 }

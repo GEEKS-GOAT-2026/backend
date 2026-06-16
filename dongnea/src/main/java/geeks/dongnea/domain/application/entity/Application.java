@@ -47,4 +47,8 @@ public class Application {
         this.answers = answers;
         this.status = status;
     }
+
+    public void updateStatus(String status) {
+        this.status = status;
+    }
 }

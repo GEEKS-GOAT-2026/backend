@@ -67,4 +67,26 @@ public class Event {
         this.imageUrl = imageUrl;
         this.published = published == null || published;
     }
+
+    public void update(
+            String title,
+            String description,
+            LocalDate eventDate,
+            String location,
+            String imageUrl,
+            Boolean published
+    ) {
+        if (title != null && !title.isBlank()) {
+            this.title = title;
+        }
+        this.description = description;
+        if (eventDate != null) {
+            this.eventDate = eventDate;
+        }
+        this.location = location;
+        this.imageUrl = imageUrl;
+        if (published != null) {
+            this.published = published;
+        }
+    }
 }

@@ -141,3 +141,8 @@ Author: GitHub Copilot (GPT-5.3-Codex)
 - OAuth handlers updated to use configurable `app.frontend.redirect-uri` and to deliver JWT in query parameter for development verification.
 - `README.md` updated to remove references to the test page and document the `?token=<JWT>` redirect contract. Reminder: query-token delivery is for development only; switch to HTTP-only cookies or postMessage flow for production.
 - Committed and pushed changes to `main` branch.
+
+## Update Log - 2026-05-14 (KST) - Frontend Redirect Path Adjustment
+- Updated `app.frontend.redirect-uri` to `http://localhost:3000/login` so OAuth success/failure callbacks land on the login page.
+- Aligned `README.md` examples with the `/login` callback path.
+

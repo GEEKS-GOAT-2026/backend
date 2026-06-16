@@ -1,7 +1,9 @@
 package geeks.dongnea.domain.event.controller;
 
+import geeks.dongnea.domain.event.dto.EventCreateRequest;
 import geeks.dongnea.domain.event.dto.EventListResponse;
 import geeks.dongnea.domain.event.dto.EventPageResponse;
+import geeks.dongnea.domain.event.dto.EventUpdateRequest;
 import geeks.dongnea.domain.event.service.EventService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -10,10 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.time.LocalDate;
@@ -46,5 +45,30 @@ public class EventController {
             @RequestParam(defaultValue = "3") int size
     ) {
         return ResponseEntity.ok(eventService.getRecentEvents(size));
+    }
+
+    @PostMapping
+    @Operation(summary = "행사 생성", description = "동아리 관리자가 새 행사를 작성합니다.")
+    public ResponseEntity<EventListResponse> createEvent(
+            @RequestParam Long clubId,
+            @RequestBody EventCreateRequest request
+    ) {
+        return ResponseEntity.ok(eventService.createEvent(clubId, request));
+    }
+
+    @PatchMapping("/{eventId}")
+    @Operation(summary = "행사 수정", description = "동아리 관리자가 기존 행사를 수정합니다.")
+    public ResponseEntity<EventListResponse> updateEvent(
+            @PathVariable Long eventId,
+            @RequestBody EventUpdateRequest request
+    ) {
+        return ResponseEntity.ok(eventService.updateEvent(eventId, request));
+    }
+
+    @DeleteMapping("/{eventId}")
+    @Operation(summary = "행사 삭제", description = "동아리 관리자가 기존 행사를 삭제합니다.")
+    public ResponseEntity<Void> deleteEvent(@PathVariable Long eventId) {
+        eventService.deleteEvent(eventId);
+        return ResponseEntity.noContent().build();
     }
 }

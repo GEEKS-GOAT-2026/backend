@@ -7,10 +7,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ClubMemberRepository extends JpaRepository<ClubMember, Long> {
 
     long countByClub(Club club);
+
+    Optional<ClubMember> findByClubAndEmail(Club club, String email);
+
+    List<ClubMember> findByEmailAndStatus(String email, String status);
 
     @Query("""
             select m

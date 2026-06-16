@@ -91,4 +91,8 @@ public class Recruitment {
 
         return started && notEnded;
     }
+
+    public void close() {
+        this.isActive = false;
+    }
 }

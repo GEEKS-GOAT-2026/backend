@@ -4,6 +4,7 @@ import geeks.dongnea.domain.club.entity.Recruitment;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 @Getter
 public class RecruitmentSummaryResponse {
@@ -15,6 +16,7 @@ public class RecruitmentSummaryResponse {
     private final LocalDate endDate;
     private final boolean alwaysOpen;
     private final boolean active;
+    private final Map<String, Object> formSchema;
 
     private RecruitmentSummaryResponse(
             Long id,
@@ -23,7 +25,8 @@ public class RecruitmentSummaryResponse {
             LocalDate startDate,
             LocalDate endDate,
             boolean alwaysOpen,
-            boolean active
+            boolean active,
+            Map<String, Object> formSchema
     ) {
         this.id = id;
         this.title = title;
@@ -32,6 +35,7 @@ public class RecruitmentSummaryResponse {
         this.endDate = endDate;
         this.alwaysOpen = alwaysOpen;
         this.active = active;
+        this.formSchema = formSchema;
     }
 
     public static RecruitmentSummaryResponse from(Recruitment recruitment, LocalDate today) {
@@ -42,7 +46,8 @@ public class RecruitmentSummaryResponse {
                 recruitment.getStartDate(),
                 recruitment.getEndDate(),
                 recruitment.isAlwaysOpen(),
-                recruitment.isOpenOn(today)
+                recruitment.isOpenOn(today),
+                recruitment.getFormSchema()
         );
     }
 }
