@@ -9,6 +9,7 @@ import geeks.dongnea.domain.club.dto.ClubMemberResponse;
 import geeks.dongnea.domain.club.dto.ClubNoticeRequest;
 import geeks.dongnea.domain.club.dto.ClubNoticeResponse;
 import geeks.dongnea.domain.club.dto.ClubPageResponse;
+import geeks.dongnea.domain.club.dto.ClubProfileUpdateRequest;
 import geeks.dongnea.domain.club.service.ClubService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -46,6 +47,15 @@ public class ClubController {
     @Operation(summary = "동아리 상세 조회", description = "동아리 소개, 자세한 활동, 활성 모집 정보를 조회합니다.")
     public ResponseEntity<ClubDetailResponse> getClub(@PathVariable Long clubId) {
         return ResponseEntity.ok(clubService.getClub(clubId));
+    }
+
+    @PatchMapping("/{clubId}/profile")
+    @Operation(summary = "동아리 소개 수정", description = "동아리 관리자가 상세 소개, 연락처, 이미지 등 프로필 정보를 수정합니다.")
+    public ResponseEntity<ClubDetailResponse> updateClubProfile(
+            @PathVariable Long clubId,
+            @RequestBody ClubProfileUpdateRequest request
+    ) {
+        return ResponseEntity.ok(clubService.updateClubProfile(clubId, request));
     }
 
     @GetMapping("/{clubId}/members")

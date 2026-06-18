@@ -10,6 +10,11 @@ Google 로그인 -> 인하대 계정 검증 -> users 저장/조회 -> 동아리 
 
 ## 현재 구현 상태
 
+프로토타입 확정 흐름 기준 API 계약과 Supabase 테스트 데이터 SQL은 아래 문서를 기준으로 관리합니다.
+
+- `dongnea/docs/API_CONTRACT.md`
+- `dongnea/docs/dev-seed.sql`
+
 ### 완료
 
 - Google OAuth2 로그인
@@ -37,6 +42,14 @@ Google 로그인 -> 인하대 계정 검증 -> users 저장/조회 -> 동아리 
   - `club_members` 테이블
   - `GET /api/clubs/{clubId}/members`
   - 신청자 수락/거절 API
+- 회장 권한 기반 글쓰기 API
+  - 동아리 소개 수정: `PATCH /api/clubs/{clubId}/profile`
+  - 공지 작성/수정/삭제: `/api/clubs/{clubId}/notices`
+  - 행사 작성/수정/삭제: `/api/events`
+- 프로토타입 상세 화면용 데이터 구조
+  - 활동기록: `club_activities`
+  - 공지: `club_notices`
+  - 모집 폼: `recruitments.form_schema`
 - local 프로필 전용 테스트 토큰 발급 API
   - `GET /api/local/auth-token`
 

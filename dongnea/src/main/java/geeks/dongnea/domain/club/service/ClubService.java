@@ -8,6 +8,7 @@ import geeks.dongnea.domain.club.dto.ClubMemberResponse;
 import geeks.dongnea.domain.club.dto.ClubNoticeRequest;
 import geeks.dongnea.domain.club.dto.ClubNoticeResponse;
 import geeks.dongnea.domain.club.dto.ClubPageResponse;
+import geeks.dongnea.domain.club.dto.ClubProfileUpdateRequest;
 import geeks.dongnea.domain.club.dto.RecruitmentSummaryResponse;
 import geeks.dongnea.domain.club.entity.Club;
 import geeks.dongnea.domain.club.entity.ClubActivity;
@@ -64,14 +65,7 @@ public class ClubService {
         Club club = clubRepository.findById(clubId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 동아리가 없습니다."));
 
-        LocalDate today = LocalDate.now();
-
-        List<RecruitmentSummaryResponse> recruitments = recruitmentRepository.findByClubAndIsActiveTrue(club)
-                .stream()
-                .map(recruitment -> RecruitmentSummaryResponse.from(recruitment, today))
-                .toList();
-
-        return ClubDetailResponse.of(club, recruitments);
+        return toClubDetailResponse(club);
     }
 
     public List<ClubMemberResponse> getClubMembers(Long clubId, String status, String keyword) {
@@ -154,6 +148,22 @@ public class ClubService {
                 .stream()
                 .map(ClubNoticeResponse::from)
                 .toList();
+    }
+
+    @Transactional
+    public ClubDetailResponse updateClubProfile(Long clubId, ClubProfileUpdateRequest request) {
+        Club club = clubAuthorizationService.requireManagedClub(clubId);
+
+        club.updateProfile(
+                request.getDescription(),
+                request.getActivityDescription(),
+                request.getCategory(),
+                request.getProfileImg(),
+                request.getContact(),
+                request.getInstagramUrl()
+        );
+
+        return toClubDetailResponse(club);
     }
 
     @Transactional
@@ -244,6 +254,17 @@ public class ClubService {
                 .stream()
                 .findFirst()
                 .orElse(null);
+    }
+
+    private ClubDetailResponse toClubDetailResponse(Club club) {
+        LocalDate today = LocalDate.now();
+
+        List<RecruitmentSummaryResponse> recruitments = recruitmentRepository.findByClubAndIsActiveTrue(club)
+                .stream()
+                .map(recruitment -> RecruitmentSummaryResponse.from(recruitment, today))
+                .toList();
+
+        return ClubDetailResponse.of(club, recruitments);
     }
 
     private Club getClubEntity(Long clubId) {

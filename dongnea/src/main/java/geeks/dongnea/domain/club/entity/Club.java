@@ -62,4 +62,32 @@ public class Club {
         this.contact = contact;
         this.instagramUrl = instagramUrl;
     }
+
+    public void updateProfile(
+            String description,
+            String activityDescription,
+            String category,
+            String profileImg,
+            String contact,
+            String instagramUrl
+    ) {
+        if (description != null) {
+            this.description = description;
+        }
+        if (activityDescription != null) {
+            this.activityDescription = activityDescription;
+        }
+        if (category != null) {
+            this.category = category;
+        }
+        if (profileImg != null) {
+            this.profileImg = profileImg;
+        }
+        if (contact != null) {
+            this.contact = contact;
+        }
+        if (instagramUrl != null) {
+            this.instagramUrl = instagramUrl;
+        }
+    }
 }
