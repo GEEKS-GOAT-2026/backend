@@ -291,8 +291,14 @@ Content-Type: application/json
         "required": true
       },
       {
-        "id": "major",
-        "label": "학과/학번",
+        "id": "studentNumber",
+        "label": "학번",
+        "type": "text",
+        "required": true
+      },
+      {
+        "id": "department",
+        "label": "학과",
         "type": "text",
         "required": true
       },
@@ -321,8 +327,8 @@ Content-Type: application/json
   "recruitmentId": 1,
   "answers": {
     "name": "홍길동",
-    "major": "컴퓨터공학과 24학번",
-    "birth": "2001-12-12",
+    "studentNumber": "12241234",
+    "department": "컴퓨터공학과",
     "phone": "010-1234-5678",
     "motivation": "함께 프로젝트를 하고 싶습니다."
   }
@@ -346,10 +352,10 @@ GET /api/clubs/{clubId}/members?status=applicant
 {
   "id": 1,
   "name": "홍길동",
-  "major": "컴퓨터공학과 24학번",
-  "email": "student@inha.edu",
-  "birth": "2001-12-12",
+  "studentNumber": "12241234",
+  "department": "컴퓨터공학과",
   "phone": "010-1234-5678",
+  "email": "student@inha.edu",
   "image": "https://example.com/profile.png",
   "status": "applicant"
 }

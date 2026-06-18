@@ -87,8 +87,8 @@ select
     '{
       "questions": [
         {"id": "name", "label": "이름", "type": "text", "required": true},
-        {"id": "major", "label": "학과/학번", "type": "text", "required": true},
-        {"id": "birth", "label": "생년월일", "type": "date", "required": false},
+        {"id": "studentNumber", "label": "학번", "type": "text", "required": true},
+        {"id": "department", "label": "학과", "type": "text", "required": true},
         {"id": "phone", "label": "전화번호", "type": "text", "required": false},
         {"id": "motivation", "label": "지원 동기", "type": "textarea", "required": true}
       ]
@@ -123,7 +123,8 @@ select
     '{
       "questions": [
         {"id": "name", "label": "이름", "type": "text", "required": true},
-        {"id": "major", "label": "학과/학번", "type": "text", "required": true},
+        {"id": "studentNumber", "label": "학번", "type": "text", "required": true},
+        {"id": "department", "label": "학과", "type": "text", "required": true},
         {"id": "motivation", "label": "지원 동기", "type": "textarea", "required": true}
       ]
     }'::jsonb,
@@ -214,6 +215,8 @@ where c.name in ('GDG on Campus Inha', '인하 밴드', '봉사단 하랑')
 insert into club_members (
     club_id,
     name,
+    student_number,
+    department,
     major,
     email,
     birth,
@@ -224,9 +227,11 @@ insert into club_members (
 select
     c.id,
     '강민규',
-    '컴퓨터공학과 24학번',
+    '12240001',
+    '컴퓨터공학과',
+    '컴퓨터공학과',
     'member1@example.com',
-    date '2001-12-12',
+    null,
     '010-1234-5678',
     c.profile_img,
     'member'
@@ -241,6 +246,8 @@ where c.name = 'GDG on Campus Inha'
 insert into club_members (
     club_id,
     name,
+    student_number,
+    department,
     major,
     email,
     birth,
@@ -251,9 +258,11 @@ insert into club_members (
 select
     c.id,
     '홍길동',
-    '컴퓨터공학과 24학번',
+    '12240002',
+    '컴퓨터공학과',
+    '컴퓨터공학과',
     'applicant1@example.com',
-    date '2001-12-12',
+    null,
     '010-0000-0001',
     '',
     'applicant'

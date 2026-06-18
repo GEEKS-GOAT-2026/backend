@@ -25,6 +25,11 @@ public class ClubMember {
     @Column(nullable = false)
     private String name;
 
+    @Column(length = 8)
+    private String studentNumber;
+
+    private String department;
+
     private String major;
 
     @Column(nullable = false)
@@ -43,6 +48,8 @@ public class ClubMember {
     public ClubMember(
             Club club,
             String name,
+            String studentNumber,
+            String department,
             String major,
             String email,
             LocalDate birth,
@@ -52,6 +59,8 @@ public class ClubMember {
     ) {
         this.club = club;
         this.name = name;
+        this.studentNumber = studentNumber;
+        this.department = department;
         this.major = major;
         this.email = email;
         this.birth = birth;
@@ -66,5 +75,9 @@ public class ClubMember {
 
     public void reject() {
         this.status = "rejected";
+    }
+
+    public void leave() {
+        this.status = "left";
     }
 }

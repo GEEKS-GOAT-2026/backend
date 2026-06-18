@@ -3,36 +3,34 @@ package geeks.dongnea.domain.club.dto;
 import geeks.dongnea.domain.club.entity.ClubMember;
 import lombok.Getter;
 
-import java.time.LocalDate;
-
 @Getter
 public class ClubMemberResponse {
 
     private final Long id;
     private final String name;
-    private final String major;
-    private final String email;
-    private final LocalDate birth;
+    private final String studentNumber;
+    private final String department;
     private final String phone;
+    private final String email;
     private final String image;
     private final String status;
 
     private ClubMemberResponse(
             Long id,
             String name,
-            String major,
-            String email,
-            LocalDate birth,
+            String studentNumber,
+            String department,
             String phone,
+            String email,
             String image,
             String status
     ) {
         this.id = id;
         this.name = name;
-        this.major = major;
-        this.email = email;
-        this.birth = birth;
+        this.studentNumber = studentNumber;
+        this.department = department;
         this.phone = phone;
+        this.email = email;
         this.image = image;
         this.status = status;
     }
@@ -41,10 +39,10 @@ public class ClubMemberResponse {
         return new ClubMemberResponse(
                 member.getId(),
                 member.getName(),
-                member.getMajor(),
-                member.getEmail(),
-                member.getBirth(),
+                member.getStudentNumber(),
+                member.getDepartment(),
                 member.getPhone(),
+                member.getEmail(),
                 member.getImage(),
                 member.getStatus()
         );

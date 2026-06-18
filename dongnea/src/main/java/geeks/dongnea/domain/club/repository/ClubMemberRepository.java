@@ -26,6 +26,8 @@ public interface ClubMemberRepository extends JpaRepository<ClubMember, Long> {
                 :keyword is null or :keyword = ''
                 or lower(m.name) like lower(concat('%', :keyword, '%'))
                 or lower(m.email) like lower(concat('%', :keyword, '%'))
+                or lower(m.studentNumber) like lower(concat('%', :keyword, '%'))
+                or lower(m.department) like lower(concat('%', :keyword, '%'))
                 or lower(m.major) like lower(concat('%', :keyword, '%'))
               )
             order by m.name asc

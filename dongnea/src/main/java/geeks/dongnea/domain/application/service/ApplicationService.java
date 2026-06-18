@@ -113,9 +113,10 @@ public class ApplicationService {
         clubMemberRepository.save(ClubMember.builder()
                 .club(recruitment.getClub())
                 .name(valueOrDefault(answers, "name", user.getName()))
-                .major(valueOrDefault(answers, "major", null))
+                .studentNumber(valueOrDefault(answers, "studentNumber", valueOrDefault(answers, "student_number", null)))
+                .department(valueOrDefault(answers, "department", valueOrDefault(answers, "major", null)))
+                .major(valueOrDefault(answers, "department", valueOrDefault(answers, "major", null)))
                 .email(user.getEmail())
-                .birth(parseBirth(answers.get("birth")))
                 .phone(valueOrDefault(answers, "phone", null))
                 .image(valueOrDefault(answers, "image", user.getPicture()))
                 .status("applicant")
@@ -130,13 +131,5 @@ public class ApplicationService {
 
         String text = String.valueOf(value).trim();
         return text.isBlank() ? defaultValue : text;
-    }
-
-    private LocalDate parseBirth(Object value) {
-        if (value == null || String.valueOf(value).isBlank()) {
-            return null;
-        }
-
-        return LocalDate.parse(String.valueOf(value));
     }
 }

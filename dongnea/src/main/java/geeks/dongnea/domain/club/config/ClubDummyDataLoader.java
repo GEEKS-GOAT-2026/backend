@@ -238,10 +238,10 @@ public class ClubDummyDataLoader implements CommandLineRunner {
         }
 
         List<ClubMember> members = List.of(
-                member(club, "강민규", "컴퓨터공학과 24학번", "asd@gmail.com", "2001-12-12", "010-1234-5678", club.getProfileImg(), "member"),
-                member(club, "홍길동", "컴퓨터공학과 24학번", "asdasd@gmail.com", "2001-12-12", "010-1234-5678", "", "applicant"),
-                member(club, "아이유", "컴퓨터공학과 23학번", "aaa@gmail.com", "2001-12-12", "010-1234-5678", "", "applicant"),
-                member(club, "이찬혁", "컴퓨터공학과 25학번", "bbb@gmail.com", "2001-12-12", "010-1234-5678", "", "member")
+                member(club, "강민규", "12240001", "컴퓨터공학과", "asd@gmail.com", "010-1234-5678", club.getProfileImg(), "member"),
+                member(club, "홍길동", "12240002", "컴퓨터공학과", "asdasd@gmail.com", "010-1234-5678", "", "applicant"),
+                member(club, "아이유", "12230003", "컴퓨터공학과", "aaa@gmail.com", "010-1234-5678", "", "applicant"),
+                member(club, "이찬혁", "12250004", "컴퓨터공학과", "bbb@gmail.com", "010-1234-5678", "", "member")
         );
 
         clubMemberRepository.saveAll(members);
@@ -250,9 +250,9 @@ public class ClubDummyDataLoader implements CommandLineRunner {
     private ClubMember member(
             Club club,
             String name,
-            String major,
+            String studentNumber,
+            String department,
             String email,
-            String birth,
             String phone,
             String image,
             String status
@@ -260,9 +260,10 @@ public class ClubDummyDataLoader implements CommandLineRunner {
         return ClubMember.builder()
                 .club(club)
                 .name(name)
-                .major(major)
+                .studentNumber(studentNumber)
+                .department(department)
+                .major(department)
                 .email(email)
-                .birth(LocalDate.parse(birth))
                 .phone(phone)
                 .image(image)
                 .status(status)
