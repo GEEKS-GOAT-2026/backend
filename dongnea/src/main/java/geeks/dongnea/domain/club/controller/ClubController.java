@@ -10,6 +10,8 @@ import geeks.dongnea.domain.club.dto.ClubNoticeRequest;
 import geeks.dongnea.domain.club.dto.ClubNoticeResponse;
 import geeks.dongnea.domain.club.dto.ClubPageResponse;
 import geeks.dongnea.domain.club.dto.ClubProfileUpdateRequest;
+import geeks.dongnea.domain.club.dto.ManagedClubResponse;
+import geeks.dongnea.domain.club.dto.ManagerTransferRequest;
 import geeks.dongnea.domain.club.service.ClubService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -153,13 +155,23 @@ public class ClubController {
         return ResponseEntity.ok(clubService.acceptMember(clubId, memberId));
     }
 
-    @DeleteMapping("/{clubId}/members/{memberId}")
-    @Operation(summary = "동아리 신청자 거절", description = "신청자 상태를 rejected로 변경합니다.")
+    @PatchMapping("/{clubId}/members/{memberId}/reject")
+    @Operation(summary = "동아리 신청자 거절", description = "신청자를 동아리원 목록에서 삭제하고, 최신 지원서는 REJECTED로 기록합니다.")
     public ResponseEntity<Void> rejectMember(
             @PathVariable Long clubId,
             @PathVariable Long memberId
     ) {
         clubService.rejectMember(clubId, memberId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{clubId}/members/{memberId}")
+    @Operation(summary = "동아리 회원 삭제", description = "동아리 관리자가 회원 또는 신청자를 동아리원 목록에서 실제 삭제합니다.")
+    public ResponseEntity<Void> removeMember(
+            @PathVariable Long clubId,
+            @PathVariable Long memberId
+    ) {
+        clubService.removeMember(clubId, memberId);
         return ResponseEntity.noContent().build();
     }
 
@@ -172,5 +184,14 @@ public class ClubController {
 
         clubService.addManager(userId, clubId, role);
         return "유저(ID: " + userId + ")가 동아리(ID: " + clubId + ")의 " + role + "로 임명되었습니다!";
+    }
+
+    @PatchMapping("/{clubId}/managers/president/transfer")
+    @Operation(summary = "회장 권한 양도", description = "현재 회장이 가입 승인된 회원에게 PRESIDENT 권한을 양도합니다.")
+    public ResponseEntity<ManagedClubResponse> transferPresident(
+            @PathVariable Long clubId,
+            @RequestBody ManagerTransferRequest request
+    ) {
+        return ResponseEntity.ok(clubService.transferPresident(clubId, request));
     }
 }

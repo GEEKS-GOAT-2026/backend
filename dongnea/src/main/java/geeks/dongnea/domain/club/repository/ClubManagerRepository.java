@@ -12,6 +12,8 @@ public interface ClubManagerRepository extends JpaRepository<ClubManager, Long> 
     // 특정 유저가 관리 중인 모든 동아리 조회
     List<ClubManager> findByUser(User user);
 
+    List<ClubManager> findByClubAndRole(Club club, String role);
+
     // 특정 유저가 특정 동아리의 관리자인지 확인
     Optional<ClubManager> findByUserAndClub(User user, Club club);
 }

@@ -6,8 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
-
 @Entity
 @Table(name = "club_members")
 @Getter
@@ -35,8 +33,6 @@ public class ClubMember {
     @Column(nullable = false)
     private String email;
 
-    private LocalDate birth;
-
     private String phone;
 
     private String image;
@@ -52,7 +48,6 @@ public class ClubMember {
             String department,
             String major,
             String email,
-            LocalDate birth,
             String phone,
             String image,
             String status
@@ -63,7 +58,6 @@ public class ClubMember {
         this.department = department;
         this.major = major;
         this.email = email;
-        this.birth = birth;
         this.phone = phone;
         this.image = image;
         this.status = status;
@@ -73,11 +67,24 @@ public class ClubMember {
         this.status = "member";
     }
 
-    public void reject() {
-        this.status = "rejected";
+    public void markApplicant() {
+        this.status = "applicant";
     }
 
-    public void leave() {
-        this.status = "left";
+    public void updateApplicantInfo(
+            String name,
+            String studentNumber,
+            String department,
+            String major,
+            String phone,
+            String image
+    ) {
+        this.name = name;
+        this.studentNumber = studentNumber;
+        this.department = department;
+        this.major = major;
+        this.phone = phone;
+        this.image = image;
     }
+
 }

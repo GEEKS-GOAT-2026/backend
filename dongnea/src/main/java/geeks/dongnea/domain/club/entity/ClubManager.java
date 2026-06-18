@@ -36,4 +36,8 @@ public class ClubManager {
         this.club = club;
         this.role = role;
     }
+
+    public void updateRole(String role) {
+        this.role = role;
+    }
 }

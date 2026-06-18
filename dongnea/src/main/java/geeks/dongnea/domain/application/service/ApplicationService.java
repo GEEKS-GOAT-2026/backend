@@ -86,6 +86,7 @@ public class ApplicationService {
 
         clubAuthorizationService.requireManagedClub(application.getRecruitment().getClub().getId());
         application.updateStatus(status);
+        syncClubMemberStatus(application, status);
         return ApplicationResponse.from(application);
     }
 
@@ -101,17 +102,33 @@ public class ApplicationService {
         return normalized;
     }
 
-    private void createApplicantMemberIfAbsent(
-            Recruitment recruitment,
-            User user,
-            Map<String, Object> answers
-    ) {
-        if (clubMemberRepository.findByClubAndEmail(recruitment.getClub(), user.getEmail()).isPresent()) {
-            return;
-        }
+    private void syncClubMemberStatus(Application application, String applicationStatus) {
+        Club club = application.getRecruitment().getClub();
+        User user = application.getUser();
 
-        clubMemberRepository.save(ClubMember.builder()
-                .club(recruitment.getClub())
+        switch (applicationStatus) {
+            case "ACCEPTED" -> {
+                ClubMember member = clubMemberRepository.findByClubAndEmail(club, user.getEmail())
+                        .orElseGet(() -> clubMemberRepository.save(buildClubMemberFromApplication(application, "applicant")));
+                member.accept();
+            }
+            case "REJECTED" -> clubMemberRepository.findByClubAndEmail(club, user.getEmail())
+                    .ifPresent(clubMemberRepository::delete);
+            case "PENDING" -> {
+                ClubMember member = clubMemberRepository.findByClubAndEmail(club, user.getEmail())
+                        .orElseGet(() -> clubMemberRepository.save(buildClubMemberFromApplication(application, "applicant")));
+                member.markApplicant();
+            }
+            default -> throw new IllegalArgumentException("지원서 상태는 PENDING, ACCEPTED, REJECTED 중 하나여야 합니다.");
+        }
+    }
+
+    private ClubMember buildClubMemberFromApplication(Application application, String status) {
+        Map<String, Object> answers = application.getAnswers();
+        User user = application.getUser();
+
+        return ClubMember.builder()
+                .club(application.getRecruitment().getClub())
                 .name(valueOrDefault(answers, "name", user.getName()))
                 .studentNumber(valueOrDefault(answers, "studentNumber", valueOrDefault(answers, "student_number", null)))
                 .department(valueOrDefault(answers, "department", valueOrDefault(answers, "major", null)))
@@ -119,8 +136,53 @@ public class ApplicationService {
                 .email(user.getEmail())
                 .phone(valueOrDefault(answers, "phone", null))
                 .image(valueOrDefault(answers, "image", user.getPicture()))
-                .status("applicant")
-                .build());
+                .status(status)
+                .build();
+    }
+
+    private void createApplicantMemberIfAbsent(
+            Recruitment recruitment,
+            User user,
+            Map<String, Object> answers
+    ) {
+        Club club = recruitment.getClub();
+        ClubMember applicantMember = buildClubMember(club, user, answers, "applicant");
+
+        ClubMember existingMember = clubMemberRepository.findByClubAndEmail(club, user.getEmail())
+                .orElse(null);
+
+        if (existingMember == null) {
+            clubMemberRepository.save(applicantMember);
+            return;
+        }
+
+        if ("member".equals(existingMember.getStatus())) {
+            throw new IllegalArgumentException("이미 가입된 동아리입니다.");
+        }
+
+        existingMember.updateApplicantInfo(
+                applicantMember.getName(),
+                applicantMember.getStudentNumber(),
+                applicantMember.getDepartment(),
+                applicantMember.getMajor(),
+                applicantMember.getPhone(),
+                applicantMember.getImage()
+        );
+        existingMember.markApplicant();
+    }
+
+    private ClubMember buildClubMember(Club club, User user, Map<String, Object> answers, String status) {
+        return ClubMember.builder()
+                .club(club)
+                .name(valueOrDefault(answers, "name", user.getName()))
+                .studentNumber(valueOrDefault(answers, "studentNumber", valueOrDefault(answers, "student_number", null)))
+                .department(valueOrDefault(answers, "department", valueOrDefault(answers, "major", null)))
+                .major(valueOrDefault(answers, "department", valueOrDefault(answers, "major", null)))
+                .email(user.getEmail())
+                .phone(valueOrDefault(answers, "phone", null))
+                .image(valueOrDefault(answers, "image", user.getPicture()))
+                .status(status)
+                .build();
     }
 
     private String valueOrDefault(Map<String, Object> answers, String key, String defaultValue) {

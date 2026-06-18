@@ -19,4 +19,6 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
     List<Application> findByRecruitmentClubOrderByIdDesc(Club club);
 
     Optional<Application> findByRecruitmentAndUser(Recruitment recruitment, User user);
+
+    Optional<Application> findFirstByRecruitmentClubAndUserOrderByIdDesc(Club club, User user);
 }

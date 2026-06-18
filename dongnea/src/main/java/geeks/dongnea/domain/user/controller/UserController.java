@@ -38,4 +38,12 @@ public class UserController {
         User currentUser = currentUserService.getCurrentUser();
         return ResponseEntity.ok(clubService.getJoinedClubs(currentUser));
     }
+
+    @DeleteMapping("/me/clubs/{clubId}")
+    @Operation(summary = "내 동아리 탈퇴", description = "현재 로그인한 유저가 가입된 동아리를 탈퇴합니다.")
+    public ResponseEntity<Void> leaveMyClub(@PathVariable Long clubId) {
+        User currentUser = currentUserService.getCurrentUser();
+        clubService.leaveClub(currentUser, clubId);
+        return ResponseEntity.noContent().build();
+    }
 }

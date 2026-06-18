@@ -2,6 +2,15 @@
 
 이 문서는 현재 확정된 앱 워크프레임 기준으로 프론트가 호출할 백엔드 API 계약을 정리한다.
 
+## Current Membership Policy
+
+- `club_members`는 현재 화면에 표시할 회원/신청자만 저장한다.
+- `club_members.status`는 `member`, `applicant`만 사용한다.
+- `rejected`, `left`, `birth`는 사용하지 않는다.
+- 가입 거절, 회원 삭제, 유저 탈퇴는 `club_members` row를 실제 삭제한다.
+- 지원서 기록은 `applications.status`에 `PENDING`, `ACCEPTED`, `REJECTED`로 남긴다.
+- 회장(`PRESIDENT`)은 바로 삭제/탈퇴할 수 없고, 먼저 회장 권한을 양도해야 한다.
+
 ## Base URL
 
 ```text
@@ -365,8 +374,38 @@ GET /api/clubs/{clubId}/members?status=applicant
 
 ```http
 PATCH /api/clubs/{clubId}/members/{memberId}/accept
+PATCH /api/clubs/{clubId}/members/{memberId}/reject
+```
+
+수락 처리:
+
+```text
+club_members.status = member
+latest applications.status = ACCEPTED
+```
+
+거절 처리:
+
+```text
+delete from club_members where id = {memberId}
+latest applications.status = REJECTED
+```
+
+### Remove Member / Leave Club
+
+회장이 회원 또는 신청자를 목록에서 실제 삭제한다.
+
+```http
 DELETE /api/clubs/{clubId}/members/{memberId}
 ```
+
+현재 로그인한 유저가 직접 동아리에서 탈퇴한다.
+
+```http
+DELETE /api/users/me/clubs/{clubId}
+```
+
+두 API 모두 `club_members` row를 실제 삭제한다. 단, 회장(`PRESIDENT`)은 먼저 권한 양도 후 삭제/탈퇴해야 한다.
 
 ### Applications
 

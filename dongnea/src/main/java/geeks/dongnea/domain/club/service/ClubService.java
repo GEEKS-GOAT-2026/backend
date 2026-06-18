@@ -1,5 +1,6 @@
 package geeks.dongnea.domain.club.service;
 
+import geeks.dongnea.domain.application.repository.ApplicationRepository;
 import geeks.dongnea.domain.club.dto.ClubActivityRequest;
 import geeks.dongnea.domain.club.dto.ClubActivityResponse;
 import geeks.dongnea.domain.club.dto.ClubDetailResponse;
@@ -9,6 +10,8 @@ import geeks.dongnea.domain.club.dto.ClubNoticeRequest;
 import geeks.dongnea.domain.club.dto.ClubNoticeResponse;
 import geeks.dongnea.domain.club.dto.ClubPageResponse;
 import geeks.dongnea.domain.club.dto.ClubProfileUpdateRequest;
+import geeks.dongnea.domain.club.dto.ManagedClubResponse;
+import geeks.dongnea.domain.club.dto.ManagerTransferRequest;
 import geeks.dongnea.domain.club.dto.RecruitmentSummaryResponse;
 import geeks.dongnea.domain.club.entity.Club;
 import geeks.dongnea.domain.club.entity.ClubActivity;
@@ -43,6 +46,7 @@ public class ClubService {
     private final ClubNoticeRepository clubNoticeRepository;
     private final ClubManagerRepository clubManagerRepository;
     private final ClubMemberRepository clubMemberRepository;
+    private final ApplicationRepository applicationRepository;
     private final RecruitmentRepository recruitmentRepository;
     private final UserRepository userRepository;
     private final ClubAuthorizationService clubAuthorizationService;
@@ -90,6 +94,20 @@ public class ClubService {
                 .distinct()
                 .map(club -> ClubListResponse.of(club, getOpenRecruitment(club, today)))
                 .toList();
+    }
+
+    @Transactional
+    public void leaveClub(User user, Long clubId) {
+        Club club = getClubEntity(clubId);
+        ClubMember member = clubMemberRepository.findByClubAndEmail(club, user.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("가입된 동아리가 아닙니다."));
+
+        if (!"member".equals(member.getStatus())) {
+            throw new IllegalArgumentException("현재 가입 상태인 동아리만 탈퇴할 수 있습니다.");
+        }
+
+        removeManagerRoleIfPossible(club, user);
+        clubMemberRepository.delete(member);
     }
 
     public List<ClubActivityResponse> getClubActivities(Long clubId) {
@@ -211,6 +229,7 @@ public class ClubService {
         clubAuthorizationService.requireManagedClub(clubId);
         ClubMember member = getClubMemberForUpdate(clubId, memberId);
         member.accept();
+        syncLatestApplicationStatus(member, "ACCEPTED");
         return ClubMemberResponse.from(member);
     }
 
@@ -218,7 +237,19 @@ public class ClubService {
     public void rejectMember(Long clubId, Long memberId) {
         clubAuthorizationService.requireManagedClub(clubId);
         ClubMember member = getClubMemberForUpdate(clubId, memberId);
-        member.reject();
+        syncLatestApplicationStatus(member, "REJECTED");
+        clubMemberRepository.delete(member);
+    }
+
+    @Transactional
+    public void removeMember(Long clubId, Long memberId) {
+        clubAuthorizationService.requireManagedClub(clubId);
+        ClubMember member = getClubMemberForUpdate(clubId, memberId);
+
+        userRepository.findByEmail(member.getEmail())
+                .ifPresent(user -> removeManagerRoleIfPossible(member.getClub(), user));
+
+        clubMemberRepository.delete(member);
     }
 
     /**
@@ -238,6 +269,40 @@ public class ClubService {
                 .build();
 
         clubManagerRepository.save(manager);
+    }
+
+    @Transactional
+    public ManagedClubResponse transferPresident(Long clubId, ManagerTransferRequest request) {
+        Club club = clubAuthorizationService.requireManagedClub(clubId);
+        String targetEmail = normalize(request.getTargetEmail());
+
+        if (targetEmail == null) {
+            throw new IllegalArgumentException("양도할 유저 이메일은 필수입니다.");
+        }
+
+        User targetUser = userRepository.findByEmail(targetEmail)
+                .orElseThrow(() -> new IllegalArgumentException("양도 대상 유저가 없습니다."));
+        ClubMember targetMember = clubMemberRepository.findByClubAndEmail(club, targetEmail)
+                .orElseThrow(() -> new IllegalArgumentException("동아리 회원에게만 회장 권한을 양도할 수 있습니다."));
+
+        if (!"member".equals(targetMember.getStatus())) {
+            throw new IllegalArgumentException("가입 승인된 회원에게만 회장 권한을 양도할 수 있습니다.");
+        }
+
+        List<ClubManager> previousPresidents = clubManagerRepository.findByClubAndRole(club, "PRESIDENT");
+        ClubManager targetManager = clubManagerRepository.findByUserAndClub(targetUser, club)
+                .orElseGet(() -> ClubManager.builder()
+                        .user(targetUser)
+                        .club(club)
+                        .role("PRESIDENT")
+                        .build());
+
+        targetManager.updateRole("PRESIDENT");
+        previousPresidents.stream()
+                .filter(manager -> !manager.getUser().getId().equals(targetUser.getId()))
+                .forEach(clubManagerRepository::delete);
+
+        return ManagedClubResponse.from(clubManagerRepository.save(targetManager));
     }
 
     private String normalize(String value) {
@@ -283,6 +348,26 @@ public class ClubService {
         }
 
         return member;
+    }
+
+    private void syncLatestApplicationStatus(ClubMember member, String applicationStatus) {
+        userRepository.findByEmail(member.getEmail())
+                .flatMap(user -> applicationRepository.findFirstByRecruitmentClubAndUserOrderByIdDesc(
+                        member.getClub(),
+                        user
+                ))
+                .ifPresent(application -> application.updateStatus(applicationStatus));
+    }
+
+    private void removeManagerRoleIfPossible(Club club, User user) {
+        clubManagerRepository.findByUserAndClub(user, club)
+                .ifPresent(manager -> {
+                    if ("PRESIDENT".equals(manager.getRole())) {
+                        throw new IllegalArgumentException("회장은 권한 양도 후 탈퇴 또는 삭제할 수 있습니다.");
+                    }
+
+                    clubManagerRepository.delete(manager);
+                });
     }
 
     private ClubActivity getClubActivityForUpdate(Long clubId, Long activityId) {
