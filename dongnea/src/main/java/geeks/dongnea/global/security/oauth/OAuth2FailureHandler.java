@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Component
 @Slf4j
@@ -39,6 +40,7 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
                 .queryParam("reason", reason)
                 .queryParam("message", userMessage)
                 .build()
+                .encode(StandardCharsets.UTF_8)
                 .toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);

@@ -36,6 +36,8 @@ public class ClubNotice {
     @Column(nullable = false)
     private boolean pinned;
 
+    private String imageUrl;
+
     @Builder
     public ClubNotice(
             Club club,
@@ -43,7 +45,8 @@ public class ClubNotice {
             String content,
             LocalDate noticeDate,
             String badge,
-            Boolean pinned
+            Boolean pinned,
+            String imageUrl
     ) {
         this.club = club;
         this.title = title;
@@ -51,6 +54,7 @@ public class ClubNotice {
         this.noticeDate = noticeDate;
         this.badge = badge;
         this.pinned = pinned != null && pinned;
+        this.imageUrl = imageUrl;
     }
 
     public void update(
@@ -58,7 +62,8 @@ public class ClubNotice {
             String content,
             LocalDate noticeDate,
             String badge,
-            Boolean pinned
+            Boolean pinned,
+            String imageUrl
     ) {
         if (title != null && !title.isBlank()) {
             this.title = title;
@@ -74,6 +79,9 @@ public class ClubNotice {
         }
         if (pinned != null) {
             this.pinned = pinned;
+        }
+        if (imageUrl != null) {
+            this.imageUrl = imageUrl;
         }
     }
 }

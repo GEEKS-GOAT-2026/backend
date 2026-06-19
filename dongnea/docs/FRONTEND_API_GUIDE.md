@@ -9,6 +9,7 @@
 - 프론트는 `/api/users/me` 응답의 `manager`, `managedClubs`를 보고 일반 유저/회장 유저 화면을 분기하면 됩니다.
 - 자유 게시판은 현재 구현하지 않습니다.
 - 회장 계정 글쓰기 범위는 동아리 소개 수정, 공지 작성, 행사 작성입니다.
+- 이미지 업로드 연동은 `docs/IMAGE_UPLOAD_FRONTEND_GUIDE.md`를 참고합니다.
 - 가입 거절, 회원 삭제, 유저 탈퇴는 `club_members` row를 실제 삭제합니다.
 - `club_members.birth`, `rejected`, `left`는 더 이상 사용하지 않습니다.
 
@@ -446,7 +447,8 @@ Content-Type: application/json
   "content": "오리엔테이션 일정과 장소를 안내합니다.",
   "noticeDate": "2026-06-20",
   "badge": "필독",
-  "pinned": true
+  "pinned": true,
+  "imageUrl": "https://example.com/notice.png"
 }
 ```
 

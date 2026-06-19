@@ -11,4 +11,5 @@ public class ClubNoticeRequest {
     private LocalDate noticeDate;
     private String badge;
     private Boolean pinned;
+    private String imageUrl;
 }

@@ -16,6 +16,7 @@ public class ClubNoticeResponse {
     private final LocalDate noticeDate;
     private final String badge;
     private final boolean pinned;
+    private final String imageUrl;
 
     private ClubNoticeResponse(
             Long id,
@@ -25,7 +26,8 @@ public class ClubNoticeResponse {
             String content,
             LocalDate noticeDate,
             String badge,
-            boolean pinned
+            boolean pinned,
+            String imageUrl
     ) {
         this.id = id;
         this.clubId = clubId;
@@ -35,6 +37,7 @@ public class ClubNoticeResponse {
         this.noticeDate = noticeDate;
         this.badge = badge;
         this.pinned = pinned;
+        this.imageUrl = imageUrl;
     }
 
     public static ClubNoticeResponse from(ClubNotice notice) {
@@ -46,7 +49,8 @@ public class ClubNoticeResponse {
                 notice.getContent(),
                 notice.getNoticeDate(),
                 notice.getBadge(),
-                notice.isPinned()
+                notice.isPinned(),
+                notice.getImageUrl()
         );
     }
 }

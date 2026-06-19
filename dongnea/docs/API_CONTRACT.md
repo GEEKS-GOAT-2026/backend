@@ -10,6 +10,7 @@
 - 가입 거절, 회원 삭제, 유저 탈퇴는 `club_members` row를 실제 삭제한다.
 - 지원서 기록은 `applications.status`에 `PENDING`, `ACCEPTED`, `REJECTED`로 남긴다.
 - 회장(`PRESIDENT`)은 바로 삭제/탈퇴할 수 없고, 먼저 회장 권한을 양도해야 한다.
+- 이미지 업로드 계약은 `docs/IMAGE_UPLOAD_FRONTEND_GUIDE.md`를 참고한다.
 
 ## Base URL
 
@@ -188,7 +189,8 @@ Content-Type: application/json
   "content": "오리엔테이션 일정과 장소를 안내합니다.",
   "noticeDate": "2026-06-20",
   "badge": "필독",
-  "pinned": true
+  "pinned": true,
+  "imageUrl": "https://example.com/notice.png"
 }
 ```
 

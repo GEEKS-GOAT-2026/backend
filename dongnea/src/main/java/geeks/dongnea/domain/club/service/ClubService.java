@@ -196,6 +196,7 @@ public class ClubService {
                 .noticeDate(request.getNoticeDate())
                 .badge(request.getBadge())
                 .pinned(request.getPinned())
+                .imageUrl(request.getImageUrl())
                 .build();
 
         return ClubNoticeResponse.from(clubNoticeRepository.save(notice));
@@ -211,7 +212,8 @@ public class ClubService {
                 request.getContent(),
                 request.getNoticeDate(),
                 request.getBadge(),
-                request.getPinned()
+                request.getPinned(),
+                request.getImageUrl()
         );
 
         return ClubNoticeResponse.from(notice);
