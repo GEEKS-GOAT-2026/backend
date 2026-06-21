@@ -3,6 +3,7 @@ package geeks.dongnea.global.security.oauth;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -23,6 +24,7 @@ class OAuth2FailureHandlerTest {
         );
 
         MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpSession session = (MockHttpSession) request.getSession();
         MockHttpServletResponse response = new MockHttpServletResponse();
         OAuth2AuthenticationException exception = new OAuth2AuthenticationException(
                 new OAuth2Error("invalid_school_email"),
@@ -33,6 +35,8 @@ class OAuth2FailureHandlerTest {
 
         String redirectedUrl = response.getRedirectedUrl();
         assertThat(response.getStatus()).isEqualTo(302);
+        assertThat(session.isInvalid()).isTrue();
+        assertThat(response.getHeader("Cache-Control")).contains("no-store");
         assertThat(redirectedUrl).isNotNull();
         assertThat(URI.create(redirectedUrl).getHost()).isEqualTo("frontend.example.com");
         assertThat(redirectedUrl)

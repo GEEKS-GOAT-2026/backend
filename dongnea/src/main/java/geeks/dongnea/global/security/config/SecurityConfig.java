@@ -2,6 +2,7 @@ package geeks.dongnea.global.security.config;
 
 import geeks.dongnea.global.security.jwt.JwtAuthenticationFilter;
 import geeks.dongnea.global.security.oauth.CustomOAuth2UserService;
+import geeks.dongnea.global.security.oauth.GoogleOAuth2AuthorizationRequestResolver;
 import geeks.dongnea.global.security.oauth.OAuth2FailureHandler;
 import geeks.dongnea.global.security.oauth.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,8 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -42,7 +45,17 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public OAuth2AuthorizationRequestResolver authorizationRequestResolver(
+            ClientRegistrationRepository clientRegistrationRepository
+    ) {
+        return new GoogleOAuth2AuthorizationRequestResolver(clientRegistrationRepository);
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(
+            HttpSecurity http,
+            OAuth2AuthorizationRequestResolver authorizationRequestResolver
+    ) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // 💡 CORS 설정 연결
                 .csrf(csrf -> csrf.disable()) // 💡 REST API이므로 CSRF 비활성화
@@ -84,6 +97,9 @@ public class SecurityConfig {
 
                 // 5. 구글 로그인(OAuth2) 설정
                 .oauth2Login(oauth2 -> oauth2
+                                .authorizationEndpoint(endpoint -> endpoint
+                                        .authorizationRequestResolver(authorizationRequestResolver)
+                                )
                                 .userInfoEndpoint(userInfo -> userInfo
                                         .userService(customOAuth2UserService) // 이메일 검사기
                                 )
